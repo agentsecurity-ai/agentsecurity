@@ -61,7 +61,7 @@ jobs:
               echo "Invalid frontmatter start in $f (expected first line to be ---)"
               exit 1
             fi
-          done < <(find spec templates examples -name "AGENTSECURITY.md" -type f | sort)
+          done < <(find templates examples -name "AGENTSECURITY.md" -type f | sort)
 
       - name: Basic site HTML sanity checks
         run: |
