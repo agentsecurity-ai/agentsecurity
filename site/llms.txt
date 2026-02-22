@@ -1,0 +1,27 @@
+# AgentSecurity Documentation Index
+# Machine-readable documentation index for AI agents
+# URL: https://agentsecurity.dev/llms.txt
+
+## Overview
+> An open standard for defining security boundaries of autonomous AI agents.
+> AGENTSECURITY.md is a declarative security policy file that lives in agent project roots.
+
+## Pages
+- [Home](https://agentsecurity.dev/) — Overview, quickstart, tier selection
+- [What is AgentSecurity?](https://agentsecurity.dev/what-is-agentsecurity.html) — Problem, solution, progressive disclosure, limitations
+- [Specification](https://agentsecurity.dev/specification.html) — Full format reference, field definitions, tier table, validation rules
+- [Adopt](https://agentsecurity.dev/adopt.html) — Installation, CI/CD, framework integration, CLI reference, templates
+
+## Key Concepts
+- Security tiers: basic, standard, strict, regulated
+- YAML frontmatter + Markdown body format
+- Progressive disclosure: metadata at startup, full policy on activation
+- Validator CLI: agentsec validate, agentsec check, agentsec report
+- Compliance mapping: OWASP LLM Top 10, NIST AI RMF, ISO 42001, EU AI Act
+
+## Resources
+- [GitHub Repository](https://github.com/agentsecurity/agentsecurity)
+- [JSON Schema](https://github.com/agentsecurity/agentsecurity/blob/main/spec/agentsecurity.schema.json)
+- [Templates](https://github.com/agentsecurity/agentsecurity/tree/main/templates)
+- [Examples](https://github.com/agentsecurity/agentsecurity/tree/main/examples)
+- [PyPI Package](https://pypi.org/project/agentsec/)

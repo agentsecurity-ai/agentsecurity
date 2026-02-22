@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>What is AgentSecurity? — AgentSecurity</title>
+    <style>
+        :root {
+            --bg: #0a0a0a; --surface: #141414; --border: #262626;
+            --text: #e5e5e5; --text-muted: #a3a3a3; --accent: #22c55e;
+            --red: #ef4444; --yellow: #eab308; --blue: #3b82f6;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+            background: var(--bg); color: var(--text); line-height: 1.7;
+        }
+        .container { max-width: 750px; margin: 0 auto; padding: 0 24px; }
+        nav { border-bottom: 1px solid var(--border); padding: 16px 0; }
+        nav .inner { max-width: 900px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
+        nav .logo { font-weight: 700; font-size: 18px; color: var(--accent); text-decoration: none; }
+        nav .links a { color: var(--text-muted); text-decoration: none; margin-left: 24px; font-size: 14px; }
+        nav .links a:hover { color: var(--text); }
+        .content { padding: 60px 0 80px; }
+        h1 { font-size: 32px; margin-bottom: 24px; }
+        h2 { font-size: 22px; margin: 40px 0 16px; color: var(--accent); }
+        h3 { font-size: 18px; margin: 24px 0 12px; }
+        p { margin-bottom: 16px; color: var(--text-muted); }
+        p strong { color: var(--text); }
+        ul { margin: 0 0 16px 20px; color: var(--text-muted); }
+        li { margin-bottom: 8px; }
+        .callout {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 8px; padding: 20px; margin: 24px 0;
+        }
+        .callout.warning { border-left: 4px solid var(--yellow); }
+        .callout.info { border-left: 4px solid var(--blue); }
+        code { background: #1a1a1a; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+        pre {
+            background: #000; border: 1px solid var(--border); border-radius: 8px;
+            padding: 16px; overflow-x: auto; margin: 16px 0; font-size: 14px;
+        }
+        footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
+        footer a { color: var(--accent); text-decoration: none; }
+    </style>
+</head>
+<body>
+    <nav>
+        <div class="inner">
+            <a href="/" class="logo">AgentSecurity</a>
+            <div class="links">
+                <a href="what-is-agentsecurity.html">What is it?</a>
+                <a href="specification.html">Specification</a>
+                <a href="adopt.html">Adopt</a>
+                <a href="https://github.com/agentsecurity/agentsecurity">GitHub</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container content">
+        <h1>What is AgentSecurity?</h1>
+
+        <p>
+            <strong>AgentSecurity</strong> is an open standard that defines security boundaries
+            for autonomous AI agents through a simple, declarative file: <code>AGENTSECURITY.md</code>.
+        </p>
+
+        <p>
+            Think of it as <code>README.md</code> for security. It lives in the root of your agent project
+            and tells the agent (and anyone reading the code) exactly what the agent is allowed to do,
+            what it must never do, and what requires human approval.
+        </p>
+
+        <h2>The Problem</h2>
+
+        <p>
+            AI agents are being deployed with increasing autonomy. They can execute code, call APIs,
+            modify databases, send emails, and manage infrastructure. But most developers building
+            agents don't have security expertise:
+        </p>
+
+        <ul>
+            <li>They don't understand prompt injection or confused deputy attacks</li>
+            <li>They don't know about tool escalation or privilege boundaries</li>
+            <li>They don't implement human-in-the-loop for destructive operations</li>
+            <li>They don't configure sandboxing, network restrictions, or audit logging</li>
+            <li>They ship agents without any declared security policy</li>
+        </ul>
+
+        <p>
+            The result: agents with implicit, undefined security boundaries running in production.
+        </p>
+
+        <h2>The Solution</h2>
+
+        <p>
+            Instead of teaching every developer security, <strong>embed safe defaults into a file
+            they can copy, customize, and validate</strong>.
+        </p>
+
+        <p>
+            <code>AGENTSECURITY.md</code> provides:
+        </p>
+
+        <ul>
+            <li><strong>Tiered security presets</strong> — Pick basic, standard, strict, or regulated. Each tier comes with sensible defaults.</li>
+            <li><strong>Tool permission declarations</strong> — Explicitly state which tools the agent can use, with what scope and limits.</li>
+            <li><strong>Human-in-the-loop configuration</strong> — Define which actions require human approval.</li>
+            <li><strong>Runtime requirements</strong> — Sandbox, network, resource, and timeout policies.</li>
+            <li><strong>Compliance mapping</strong> — Each control maps to OWASP, NIST, ISO, and EU AI Act frameworks.</li>
+            <li><strong>Validator CLI</strong> — <code>agentsec check .</code> verifies your code matches your declared policy.</li>
+        </ul>
+
+        <h2>How It Works</h2>
+
+        <h3>1. Add an AGENTSECURITY.md</h3>
+        <pre>agentsec init --tier standard</pre>
+        <p>This creates a pre-configured policy file. Customize it for your agent's actual tools and capabilities.</p>
+
+        <h3>2. Validate Your Policy</h3>
+        <pre>agentsec validate .</pre>
+        <p>Checks that all required fields are present and tier-specific requirements are met.</p>
+
+        <h3>3. Scan Your Codebase</h3>
+        <pre>agentsec check .</pre>
+        <p>Detects undeclared tool usage, hardcoded secrets, dangerous code patterns, and policy gaps.</p>
+
+        <h3>4. Enforce in CI/CD</h3>
+        <p>Add the GitHub Action to block PRs that violate your security policy.</p>
+
+        <h2>Progressive Disclosure</h2>
+
+        <p>
+            Inspired by <a href="https://agentskills.io" style="color:var(--accent)">Agent Skills</a>,
+            AgentSecurity uses a three-layer progressive disclosure model to minimize context window overhead:
+        </p>
+
+        <ul>
+            <li><strong>Layer 1: Discovery (~50-100 tokens)</strong> — At startup, only the frontmatter metadata is loaded. The agent knows its security tier and enforcement mode.</li>
+            <li><strong>Layer 2: Activation (~500-2000 tokens)</strong> — When the agent starts a task, the full policy body is loaded with constraints, tool permissions, and HITL requirements.</li>
+            <li><strong>Layer 3: On-Demand</strong> — Detailed compliance mappings and threat models are loaded only when specifically needed.</li>
+        </ul>
+
+        <h2>What AgentSecurity is NOT</h2>
+
+        <div class="callout warning">
+            <p><strong>Not a runtime guarantee.</strong> AGENTSECURITY.md defines intent, not enforcement. A compromised LLM can still violate the policy. Runtime enforcement requires additional infrastructure (proxy, gateway).</p>
+        </div>
+
+        <div class="callout warning">
+            <p><strong>Not a certification.</strong> Declaring NIST alignment means you've designed with NIST in mind. Formal certification requires independent audit.</p>
+        </div>
+
+        <div class="callout warning">
+            <p><strong>Not a substitute for expertise.</strong> Templates provide safe defaults, but complex architectures need human security review.</p>
+        </div>
+
+        <div class="callout info">
+            <p><strong>It IS a security abstraction layer.</strong> It lets developers who don't know OWASP, NIST, or IAM still ship agents with declared, validated security boundaries.</p>
+        </div>
+
+        <h2>Who Is This For?</h2>
+
+        <ul>
+            <li><strong>Developers</strong> building agents who want safe defaults without learning security from scratch</li>
+            <li><strong>Security teams</strong> who need to audit agent architectures across their organization</li>
+            <li><strong>CTOs/CISOs</strong> who want a standard way to govern agent deployments</li>
+            <li><strong>Compliance officers</strong> who need to map agent behavior to regulatory frameworks</li>
+        </ul>
+    </div>
+
+    <footer>
+        <div class="container">
+            <p>
+                <a href="/">Home</a> |
+                <a href="specification.html">Specification</a> |
+                <a href="adopt.html">Adopt</a> |
+                <a href="https://github.com/agentsecurity/agentsecurity">GitHub</a>
+            </p>
+        </div>
+    </footer>
+</body>
+</html>
