@@ -1,0 +1,104 @@
+name: Phase 1 CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  phase1-files:
+    name: phase1-files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify required Phase 1 files
+        run: |
+          set -euo pipefail
+
+          required_files=(
+            "spec/AGENTSECURITY.md"
+            "templates/basic/AGENTSECURITY.md"
+            "templates/standard/AGENTSECURITY.md"
+            "templates/strict/AGENTSECURITY.md"
+            "templates/regulated/AGENTSECURITY.md"
+            "examples/bad-agent/AGENTSECURITY.md"
+            "examples/claude-code-project/AGENTSECURITY.md"
+            "examples/financial-processor/AGENTSECURITY.md"
+            "examples/gemini-workflow/AGENTSECURITY.md"
+            "examples/langchain-agent/AGENTSECURITY.md"
+            "examples/openai-assistant/AGENTSECURITY.md"
+            "site/index.html"
+            "site/what-is-agentsecurity.html"
+            "site/specification.html"
+            "site/adopt.html"
+            "site/llms.txt"
+          )
+
+          missing=0
+          for f in "${required_files[@]}"; do
+            if [[ ! -f "$f" ]]; then
+              echo "Missing required file: $f"
+              missing=1
+            fi
+          done
+          if [[ "$missing" -ne 0 ]]; then
+            exit 1
+          fi
+
+      - name: Validate AGENTSECURITY frontmatter markers
+        run: |
+          set -euo pipefail
+
+          while IFS= read -r f; do
+            first_line="$(head -n 1 "$f" || true)"
+            if [[ "$first_line" != "---" ]]; then
+              echo "Invalid frontmatter start in $f (expected first line to be ---)"
+              exit 1
+            fi
+          done < <(find spec templates examples -name "AGENTSECURITY.md" -type f | sort)
+
+      - name: Basic site HTML sanity checks
+        run: |
+          set -euo pipefail
+
+          for f in site/*.html; do
+            grep -q "<!DOCTYPE html>" "$f" || { echo "Missing DOCTYPE in $f"; exit 1; }
+            grep -qi "<title>" "$f" || { echo "Missing <title> in $f"; exit 1; }
+          done
+
+  phase1-links:
+    name: phase1-links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate internal site links
+        run: |
+          set -euo pipefail
+
+          failed=0
+          for f in site/*.html; do
+            while IFS= read -r link; do
+              # Skip external/anchors/mailto/absolute paths.
+              if [[ "$link" =~ ^https?:// ]] || [[ "$link" =~ ^# ]] || [[ "$link" =~ ^mailto: ]] || [[ "$link" =~ ^/ ]]; then
+                continue
+              fi
+
+              target="site/$link"
+              if [[ ! -e "$target" ]]; then
+                echo "Broken internal link in $f -> $link"
+                failed=1
+              fi
+            done < <(grep -oE 'href="[^"]+"' "$f" | cut -d'"' -f2 | sort -u)
+          done
+
+          if [[ "$failed" -ne 0 ]]; then
+            exit 1
+          fi
