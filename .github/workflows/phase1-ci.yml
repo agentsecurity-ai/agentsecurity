@@ -65,13 +65,24 @@ jobs:
 
       - name: Basic site HTML sanity checks
         run: |
-          set -euo pipefail
-
-          for f in site/*.html; do
-            echo "Inspecting $f..."
-            grep -q "<!DOCTYPE html>" "$f" || { echo "Missing DOCTYPE in $f"; exit 1; }
-            grep -qi "<title>" "$f" || { echo "Missing <title> in $f"; exit 1; }
-          done
+          python3 -c "
+          import glob, sys, re
+          failed = False
+          for f in sorted(glob.glob('site/*.html')):
+              with open(f, 'r') as file:
+                  content = file.read()
+              if '<!DOCTYPE html>' not in content and '<!doctype html>' not in content:
+                  print(f'ERROR: Missing <!DOCTYPE html> in {f}')
+                  failed = True
+              if not re.search(r'<title>.*</title>', content, re.IGNORECASE | re.DOTALL):
+                  print(f'ERROR: Missing <title> in {f}')
+                  failed = True
+              else:
+                  print(f'PASSED: {f}')
+          if failed:
+              sys.exit(1)
+          print('All HTML sanity checks passed.')
+          "
 
   phase1-links:
     name: phase1-links
