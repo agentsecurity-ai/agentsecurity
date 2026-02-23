@@ -52,6 +52,9 @@ tools:
 
 ```yaml
 runtime:
+  sandbox:
+    required: true
+    type: process
   network:
     outbound_allowlist:
       - "api.github.com"

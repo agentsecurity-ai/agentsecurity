@@ -52,6 +52,9 @@ tools:
 
 ```yaml
 runtime:
+  sandbox:
+    required: true
+    type: docker
   network:
     outbound_allowlist:
       - "api.anthropic.com"
@@ -60,6 +63,16 @@ runtime:
   timeout:
     per_step_seconds: 15
     total_seconds: 120
+```
+
+## Human-in-the-Loop
+
+```yaml
+human_in_the_loop:
+  always_require:
+    - "modify_vector_index"
+  approval_mechanism: cli_prompt
+  approval_timeout_seconds: 120
 ```
 
 ## Audit
