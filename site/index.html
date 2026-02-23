@@ -355,6 +355,48 @@
                 font-size: 16px;
             }
         }
+
+        /* Quickstart Tabs */
+        .tabs {
+            margin-top: 24px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 0;
+            padding-left: 12px;
+        }
+
+        .tab-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #000;
+            color: var(--accent);
+            border-top: 2px solid var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .quickstart-container {
+            margin: 40px 0;
+        }
     </style>
     <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
@@ -391,27 +433,75 @@
             </div>
         </section>
 
-        <section class="quickstart">
-            <h2>Quickstart</h2>
-            <div class="code-block" style="position: relative;">
-                <button class="copy-btn"
-                    style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
-                <pre><code class="language-bash"># Install the CLI
-pip install agentsec
+        <section class="quickstart-container">
+            <h2
+                style="font-size: 16px; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">
+                Quickstart</h2>
 
-# Initialize a security policy (interactive)
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="openTab(event, 'macos-linux')">macOS / Linux</button>
+                    <button class="tab-btn" onclick="openTab(event, 'windows')">Windows</button>
+                    <button class="tab-btn" onclick="openTab(event, 'docker')">Docker</button>
+                </div>
+
+                <div id="macos-linux" class="tab-content active">
+                    <div class="code-block">
+                        <button class="copy-btn"
+                            style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
+                        <pre><code class="language-bash"># Install from source
+python3 -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=tools/agentsec"
+
+# Initialize security policy
 agentsec init
 
-# Validate your policy
-agentsec validate .
+# Scan codebase
+agentsec scan .</code></pre>
+                    </div>
+                </div>
 
-# Scan your codebase for violations
-agentsec check .
+                <div id="windows" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn"
+                            style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
+                        <pre><code class="language-powershell"># Install (PowerShell)
+python -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=tools/agentsec"
 
-# Get framework-specific recommendations
-agentsec suggest .</code></pre>
+# Initialize
+agentsec init
+
+# Scan
+agentsec scan .</code></pre>
+                    </div>
+                </div>
+
+                <div id="docker" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn"
+                            style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
+                        <pre><code class="language-bash"># Run on-demand without install
+docker run -it --rm -v "$(pwd):/app" python:3.11-slim /bin/bash -c \
+ "pip install agentsec && agentsec scan /app"</code></pre>
+                    </div>
+                </div>
             </div>
         </section>
+
+        <script>
+            function openTab(evt, tabName) {
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("tab-content");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+                tablinks = document.getElementsByClassName("tab-btn");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+                document.getElementById(tabName).style.display = "block";
+                evt.currentTarget.className += " active";
+            }
+        </script>
 
         <h2 class="section-title">How It Works in Practice</h2>
         <div class="features" style="grid-template-columns: 1fr; gap: 32px; margin-bottom: 60px;">
@@ -440,7 +530,8 @@ tools:
                 </h3>
                 <p style="margin-bottom: 20px; font-size: 16px;">If a teammate opens a Pull Request that deletes a
                     security constraint or adds an overly broad wildcard permission (<code>*</code>), the GitHub Action
-                    <strong>automatically fails the pull request</strong> and blocks the insecure code from merging.</p>
+                    <strong>automatically fails the pull request</strong> and blocks the insecure code from merging.
+                </p>
                 <div class="code-block" style="border-left: 4px solid var(--red);">
                     <pre><code class="language-bash" style="color: #ff8080;">FAIL [HIGH] Tool 'file_system' has wildcard scope ('*'). Narrow the scope to specific resources.
 RESULT: FAIL (high severity findings detected)</code></pre>
