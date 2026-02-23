@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ | AgentSecurity</title>
+    <meta name="description" content="Frequently Asked Questions about AgentSecurity and autonomous agent boundaries.">
+    <meta property="og:title" content="FAQ | AgentSecurity">
+    <meta property="og:description" content="Frequently Asked Questions about AgentSecurity.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <style>
+        :root {
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --border: #262626;
+            --text: #e5e5e5;
+            --text-muted: #a3a3a3;
+            --accent: #22c55e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        nav {
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        nav .logo {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 24px;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--surface);
+                padding: 20px;
+                border-bottom: 1px solid var(--border);
+                z-index: 100;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+        }
+
+        .content {
+            padding: 60px 0;
+        }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-size: 22px;
+            margin: 30px 0 10px;
+            color: #fff;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav>
+            <a href="/" class="logo">AgentSecurity</a>
+            <button class="menu-toggle" id="mobile-menu">☰</button>
+            <div class="nav-links" id="nav-links">
+                <a href="what-is-agentsecurity.html">What is it?</a>
+                <a href="specification.html">Specification</a>
+                <a href="adopt.html">Adopt</a>
+                <a href="integration.html">Integration</a>
+                <a href="best-practices.html">Best Practices</a>
+                <a href="faq.html">FAQ</a>
+            </div>
+        </nav>
+
+        <div class="content">
+            <h1>Frequently Asked Questions</h1>
+
+            <h2>Is AgentSecurity a runtime proxy?</h2>
+            <p>No, AgentSecurity themselves is an open spec and a CLI tool for static validation. However, you can use
+                the spec to configure a runtime proxy (like an API gateway or an egress firewall) natively. Think of it
+                like a Kubernetes Deployment YAML—it declares the state, and the controller enforces it.</p>
+
+            <h2>Does this stop Prompt Injection?</h2>
+            <p>It stops the <strong>impact</strong> of prompt injection. If an attacker injects a prompt into your agent
+                telling it to delete its database or exfiltrate tokens, the hard constraints and tool configurations
+                within AGENTSECURITY.md prevent the execution of that payload if you configure your endpoints
+                efficiently. It is a defense-in-depth layer.</p>
+
+            <h2>Can I use it with closed-source agents or models?</h2>
+            <p>Yes. By specifying constraints on the environment level (network outbound allowlists, filesystem paths),
+                even if a black-box agent goes rogue, the enforcement layers described in the spec limit the blast
+                radius.</p>
+
+            <h2>Is the CLI required?</h2>
+            <p>No, you can simply write the markdown file by hand and never validate it. The CLI just ensures developers
+                didn't accidentally violate their own security constraints or add new tools to the codebase without
+                updating the policy.</p>
+
+            <h2>Why YAML frontmatter instead of a raw JSON file?</h2>
+            <p>Developers are familiar with README.md files. By using markdown with frontmatter, we can combine strict,
+                parseable schema logic with deep, human-readable sections describing the threat model and incident
+                response procedures. We prioritize the developer experience.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('mobile-menu').addEventListener('click', function () {
+            document.getElementById('nav-links').classList.toggle('active');
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://agentsecurity.dev/schema/v0.1/agentsecurity.schema.json",
+  "title": "AGENTSECURITY.md Frontmatter Schema",
+  "description": "JSON Schema for validating the YAML frontmatter of AGENTSECURITY.md files. Version 0.1 of the AgentSecurity specification.",
+  "type": "object",
+  "required": ["name", "description", "security_tier", "version"],
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Unique identifier for this agent's security policy. Lowercase alphanumeric and hyphens only.",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?$",
+      "not": {
+        "pattern": "--"
+      },
+      "examples": ["financial-processor", "support-bot", "code-reviewer"]
+    },
+    "description": {
+      "type": "string",
+      "description": "Human and machine-readable summary of what the agent does and its security context.",
+      "minLength": 1,
+      "maxLength": 512,
+      "examples": ["Processes customer support tickets and generates responses"]
+    },
+    "security_tier": {
+      "type": "string",
+      "description": "Security enforcement level. Determines default requirements for tools, HITL, sandbox, audit, etc.",
+      "enum": ["basic", "standard", "strict", "regulated"]
+    },
+    "version": {
+      "type": "string",
+      "description": "Spec version this file conforms to.",
+      "pattern": "^[0-9]+\\.[0-9]+$",
+      "examples": ["0.1", "1.0"]
+    },
+    "license": {
+      "type": "string",
+      "description": "The license under which this agent or schema is distributed.",
+      "examples": ["Apache-2.0", "MIT", "Proprietary"]
+    },
+    "compatibility": {
+      "type": "array",
+      "description": "Frameworks or runtimes this agent is compatible with.",
+      "items": {
+        "type": "string",
+        "examples": ["langchain", "crewai", "autogen", "semantic-kernel", "mcp"]
+      },
+      "uniqueItems": true
+    },
+    "governance": {
+      "type": "array",
+      "description": "Compliance frameworks this agent aligns with. Declaring governance is a statement of design intent, not certification.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "NIST-AI-RMF",
+          "OWASP-LLM-TOP10",
+          "ISO-42001",
+          "EU-AI-ACT",
+          "SOC2",
+          "HIPAA",
+          "PCI-DSS",
+          "GDPR"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "enforcement": {
+      "type": "string",
+      "description": "What happens when a policy violation is detected. Defaults to 'warn' if not specified.",
+      "enum": ["warn", "block", "block_and_audit"],
+      "default": "warn"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Arbitrary key-value metadata for extensibility (author, org, review cadence, etc.).",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "properties": {
+        "author": {
+          "type": "string",
+          "description": "Author or team responsible for this policy."
+        },
+        "org": {
+          "type": "string",
+          "description": "Organization that owns this agent."
+        },
+        "last_reviewed": {
+          "type": "string",
+          "description": "ISO 8601 date of last security review.",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "contact": {
+          "type": "string",
+          "description": "Security contact email or URL."
+        },
+        "tags": {
+          "type": "string",
+          "description": "Comma-separated tags for categorization."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "tier_requirements": {
+      "description": "Reference: default requirements per tier. Not enforced by schema — enforced by agentsec CLI.",
+      "type": "object",
+      "properties": {
+        "basic": {
+          "description": "Hobby/internal projects. Tool allowlisting recommended, HITL optional, no sandbox required, no audit required."
+        },
+        "standard": {
+          "description": "Production agents. Tool allowlisting required, HITL for high-risk, sandbox recommended, audit recommended, OWASP alignment."
+        },
+        "strict": {
+          "description": "Sensitive workloads. All tools declared, HITL for destructive ops, sandbox required, full audit, OWASP+NIST alignment."
+        },
+        "regulated": {
+          "description": "Healthcare/finance/government. Full compliance mapping, tamper-proof audit, HITL on all external actions, air-gapped option."
+        }
+      }
+    }
+  }
+}

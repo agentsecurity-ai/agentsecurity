@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Integration Guide | AgentSecurity</title>
+    <meta name="description" content="Model-agnostic agent integration guide for AgentSecurity. Works with any LLM, any framework.">
+    <meta property="og:title" content="Integration Guide | AgentSecurity">
+    <meta property="og:description" content="Model-agnostic agent integration guide for AgentSecurity. Works with any LLM, any framework.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <!-- Prism CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #0a0a0a; --surface: #141414; --border: #262626; --text: #e5e5e5;
+            --text-muted: #a3a3a3; --accent: #22c55e;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+        
+        /* Mobile Nav */
+        nav { border-bottom: 1px solid var(--border); padding: 16px 0; display: flex; align-items: center; justify-content: space-between; }
+        nav .logo { font-weight: 700; font-size: 18px; color: var(--accent); text-decoration: none; }
+        .nav-links { display: flex; gap: 24px; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-size: 14px; }
+        .nav-links a:hover { color: var(--text); }
+        .menu-toggle { display: none; background: none; border: none; color: var(--text); font-size: 24px; cursor: pointer; }
+        
+        @media (max-width: 768px) {
+            .nav-links { display: none; flex-direction: column; position: absolute; top: 60px; left: 0; right: 0; background: var(--surface); padding: 20px; border-bottom: 1px solid var(--border); z-index: 100; }
+            .nav-links.active { display: flex; }
+            .menu-toggle { display: block; }
+        }
+
+        .content { padding: 60px 0; }
+        h1 { font-size: 36px; margin-bottom: 24px; }
+        h2 { font-size: 24px; margin: 40px 0 16px; color: #fff; }
+        p { margin-bottom: 16px; color: var(--text-muted); }
+        ul { list-style: disc; margin: 0 0 16px 24px; color: var(--text-muted); }
+        li { margin-bottom: 8px; }
+        
+        .code-container { position: relative; margin-bottom: 24px; }
+        .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+        .copy-btn:hover { background: rgba(255,255,255,0.2); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="/" class="logo">AgentSecurity</a>
+            <button class="menu-toggle" id="mobile-menu">☰</button>
+            <div class="nav-links" id="nav-links">
+                <a href="what-is-agentsecurity.html">What is it?</a>
+                <a href="specification.html">Specification</a>
+                <a href="adopt.html">Adopt</a>
+                <a href="integration.html">Integration</a>
+                <a href="best-practices.html">Best Practices</a>
+                <a href="faq.html">FAQ</a>
+            </div>
+        </nav>
+        
+        <div class="content">
+            <h1>Model-Agnostic Integration Guide</h1>
+            <p>Because AgentSecurity is a declarative specification, it is inherently model-agnostic. Whether you use OpenAI, Anthropic, Google, Mistral, or an open-source model running locally, the principles and configuration remain exactly the same.</p>
+
+            <h2>Provider Agnosticism</h2>
+            <p>AgentSecurity focuses on the <strong>tools</strong> and <strong>environment boundaries</strong> rather than the underlying LLM's system prompt or vendor-specific API limitations.</p>
+            <p>In your <code>AGENTSECURITY.md</code>, specify the provider in the tool scope, so your validator knows what is allowed:</p>
+            
+            <div class="code-container">
+                <button class="copy-btn">Copy</button>
+                <pre><code class="language-yaml">tools:
+  - name: llm_api
+    permission: read_only
+    scope:
+      provider: "anthropic" # Or "openai", "google", "local"
+      model: "claude-3-5-sonnet"
+      max_tokens_per_call: 8192</code></pre>
+            </div>
+
+            <h2>How to Enforce the Policy in Any Agent</h2>
+            <p>Integration typically relies on reading properties from the policy at initialization time and wrapping your agent's tool invocations. The pattern looks like this in Python:</p>
+
+            <div class="code-container">
+                <button class="copy-btn">Copy</button>
+                <pre><code class="language-python"># 1. Load the policy
+from agentsec.parser import parse_policy
+policy = parse_policy("AGENTSECURITY.md")
+
+# 2. Configure Model
+# model = ChatOpenAI() or ChatAnthropic() or ChatGoogle()
+
+# 3. Intercept and Validate
+def execute_tool(tool_name, parameters):
+    # Check if the tool is allowlisted in the loaded policy
+    if not policy.allows(tool_name):
+        return "Action denied: tool not in AGENTSECURITY.md"
+        
+    # Check if scopes are respected
+    if tool_name == "web_search":
+        if not policy.scope_allows("web_search", parameters['url']):
+            return f"Action denied: domain {parameters['url']} not allowed."
+            
+    # Check HITL requirement
+    if policy.requires_hitl(tool_name):
+        approval = request_human_approval(tool_name, parameters)
+        if not approval:
+            return "Action denied by human orchestrator."
+
+    # Proceed to execute tool
+    return run_tool(tool_name, parameters)</code></pre>
+            </div>
+
+            <h2>Prompt Locking (System Prompt Injection)</h2>
+            <p>To improve LLM alignment with the policy, inject the parsed policy directly into the agent's system prompt. The CLI can generate the prompt-friendly XML block for you:</p>
+            <div class="code-container">
+                <button class="copy-btn">Copy</button>
+                <pre><code class="language-bash">$ agentsec to-prompt .
+
+&lt;agent_security_policy&gt;
+  &lt;tier&gt;standard&lt;/tier&gt;
+  &lt;hard_constraints&gt;
+    &lt;rule&gt;Never execute dynamic Python code&lt;/rule&gt;
+    &lt;rule&gt;Never access paths outside ./output&lt;/rule&gt;
+  &lt;/hard_constraints&gt;
+&lt;/agent_security_policy&gt;</code></pre>
+            </div>
+            
+            <p>Append this dynamically generated string to the end of any system prompt so the LLM is explicitly aware of its boundaries and doesn't hallucinate API access.</p>
+
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script>
+        // Mobile Nav
+        document.getElementById('mobile-menu').addEventListener('click', function() {
+            document.getElementById('nav-links').classList.toggle('active');
+        });
+
+        // Copy buttons
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const code = btn.nextElementSibling.innerText;
+                navigator.clipboard.writeText(code);
+                btn.innerText = 'Copied!';
+                setTimeout(() => btn.innerText = 'Copy', 2000);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,10 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentSecurity — The Security Contract for Autonomous Agents</title>
-    <meta name="description" content="An open standard for defining security boundaries of autonomous AI agents. Like README.md, but for security.">
+    <meta name="description"
+        content="An open standard for defining security boundaries of autonomous AI agents. Like README.md, but for security.">
+    <meta property="og:title" content="AgentSecurity | The Security Contract for Autonomous Agents">
+    <meta property="og:description" content="An open standard for defining security boundaries of AI agents.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
         :root {
             --bg: #0a0a0a;
@@ -18,57 +25,83 @@
             --yellow: #eab308;
             --blue: #3b82f6;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
         }
-        .container { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
         nav {
             border-bottom: 1px solid var(--border);
             padding: 16px 0;
         }
+
         nav .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
+
         nav .logo {
             font-weight: 700;
             font-size: 18px;
             color: var(--accent);
             text-decoration: none;
         }
+
         nav .links a {
             color: var(--text-muted);
             text-decoration: none;
             margin-left: 24px;
             font-size: 14px;
         }
-        nav .links a:hover { color: var(--text); }
+
+        nav .links a:hover {
+            color: var(--text);
+        }
+
         .hero {
             padding: 80px 0 60px;
             text-align: center;
         }
+
         .hero h1 {
             font-size: 42px;
             font-weight: 800;
             line-height: 1.2;
             margin-bottom: 20px;
         }
-        .hero h1 span { color: var(--accent); }
+
+        .hero h1 span {
+            color: var(--accent);
+        }
+
         .hero p {
             font-size: 18px;
             color: var(--text-muted);
             max-width: 600px;
             margin: 0 auto 32px;
         }
+
         .hero .cta {
             display: inline-flex;
             gap: 12px;
         }
+
         .btn {
             display: inline-block;
             padding: 12px 28px;
@@ -78,17 +111,26 @@
             text-decoration: none;
             transition: all 0.2s;
         }
+
         .btn-primary {
             background: var(--accent);
             color: #000;
         }
-        .btn-primary:hover { background: #16a34a; }
+
+        .btn-primary:hover {
+            background: #16a34a;
+        }
+
         .btn-secondary {
             background: var(--surface);
             color: var(--text);
             border: 1px solid var(--border);
         }
-        .btn-secondary:hover { border-color: var(--text-muted); }
+
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+        }
+
         .quickstart {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -96,6 +138,7 @@
             padding: 32px;
             margin: 40px 0;
         }
+
         .quickstart h2 {
             font-size: 16px;
             color: var(--text-muted);
@@ -103,6 +146,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
+
         .code-block {
             background: #000;
             border: 1px solid var(--border);
@@ -113,15 +157,26 @@
             overflow-x: auto;
             position: relative;
         }
-        .code-block .comment { color: var(--text-muted); }
-        .code-block .cmd { color: var(--accent); }
-        .code-block .flag { color: var(--blue); }
+
+        .code-block .comment {
+            color: var(--text-muted);
+        }
+
+        .code-block .cmd {
+            color: var(--accent);
+        }
+
+        .code-block .flag {
+            color: var(--blue);
+        }
+
         .cards {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 16px;
             margin: 60px 0;
         }
+
         .card {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -131,22 +186,37 @@
             color: var(--text);
             transition: border-color 0.2s;
         }
-        .card:hover { border-color: var(--accent); }
-        .card h3 { font-size: 16px; margin-bottom: 8px; }
-        .card p { font-size: 14px; color: var(--text-muted); }
+
+        .card:hover {
+            border-color: var(--accent);
+        }
+
+        .card h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .card p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
         .tiers {
             margin: 60px 0;
         }
+
         .tiers h2 {
             font-size: 24px;
             margin-bottom: 24px;
             text-align: center;
         }
+
         .tier-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 12px;
         }
+
         .tier {
             background: var(--surface);
             border: 1px solid var(--border);
@@ -154,25 +224,55 @@
             padding: 20px;
             text-align: center;
         }
-        .tier h4 { margin-bottom: 8px; }
-        .tier.basic h4 { color: var(--blue); }
-        .tier.standard h4 { color: var(--accent); }
-        .tier.strict h4 { color: var(--yellow); }
-        .tier.regulated h4 { color: var(--red); }
-        .tier p { font-size: 13px; color: var(--text-muted); }
+
+        .tier h4 {
+            margin-bottom: 8px;
+        }
+
+        .tier.basic h4 {
+            color: var(--blue);
+        }
+
+        .tier.standard h4 {
+            color: var(--accent);
+        }
+
+        .tier.strict h4 {
+            color: var(--yellow);
+        }
+
+        .tier.regulated h4 {
+            color: var(--red);
+        }
+
+        .tier p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
         .section-title {
             font-size: 24px;
             text-align: center;
             margin: 60px 0 24px;
         }
+
         .features {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 24px;
             margin: 40px 0;
         }
-        .feature h3 { font-size: 16px; margin-bottom: 8px; }
-        .feature p { font-size: 14px; color: var(--text-muted); }
+
+        .feature h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .feature p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
         .badge-section {
             text-align: center;
             margin: 60px 0;
@@ -181,6 +281,7 @@
             border: 1px solid var(--border);
             border-radius: 12px;
         }
+
         .badge-section code {
             background: #000;
             padding: 8px 16px;
@@ -190,6 +291,7 @@
             margin-top: 16px;
             word-break: break-all;
         }
+
         footer {
             border-top: 1px solid var(--border);
             padding: 32px 0;
@@ -198,18 +300,69 @@
             color: var(--text-muted);
             font-size: 13px;
         }
-        footer a { color: var(--accent); text-decoration: none; }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            nav .links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--surface);
+                padding: 20px;
+                border-bottom: 1px solid var(--border);
+                z-index: 100;
+            }
+
+            nav .links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            nav .links a {
+                margin: 10px 0;
+                font-size: 16px;
+            }
+        }
     </style>
 </head>
+
 <body>
     <nav>
-        <div class="container">
+        <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
             <a href="/" class="logo">AgentSecurity</a>
-            <div class="links">
+            <button class="menu-toggle" id="mobile-menu">☰</button>
+            <div class="links nav-links" id="nav-links">
                 <a href="what-is-agentsecurity.html">What is it?</a>
                 <a href="specification.html">Specification</a>
                 <a href="adopt.html">Adopt</a>
-                <a href="https://github.com/agentsecurity/agentsecurity">GitHub</a>
+                <a href="integration.html">Integration</a>
+                <a href="best-practices.html">Best Practices</a>
+                <a href="faq.html">FAQ</a>
+                <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>
             </div>
         </div>
     </nav>
@@ -230,15 +383,20 @@
 
         <section class="quickstart">
             <h2>Quickstart</h2>
-            <div class="code-block">
-                <span class="comment"># Install the validator</span><br>
-                <span class="cmd">pip install</span> agentsec<br><br>
-                <span class="comment"># Initialize a security policy</span><br>
-                <span class="cmd">agentsec init</span> <span class="flag">--tier standard</span><br><br>
-                <span class="comment"># Validate your policy</span><br>
-                <span class="cmd">agentsec validate</span> .<br><br>
-                <span class="comment"># Scan your codebase for violations</span><br>
-                <span class="cmd">agentsec check</span> .
+            <div class="code-block" style="position: relative;">
+                <button class="copy-btn"
+                    style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
+                <pre><code class="language-bash"># Install the validator
+pip install agentsec
+
+# Initialize a security policy
+agentsec init --tier standard
+
+# Validate your policy
+agentsec validate .
+
+# Scan your codebase for violations
+agentsec check .</code></pre>
             </div>
         </section>
 
@@ -246,11 +404,13 @@
         <div class="cards">
             <a href="what-is-agentsecurity.html" class="card">
                 <h3>What is AgentSecurity?</h3>
-                <p>Why pre-build security matters for autonomous agents. The threat landscape and how AGENTSECURITY.md addresses it.</p>
+                <p>Why pre-build security matters for autonomous agents. The threat landscape and how AGENTSECURITY.md
+                    addresses it.</p>
             </a>
             <a href="specification.html" class="card">
                 <h3>Specification</h3>
-                <p>Complete format reference for AGENTSECURITY.md. Fields, tiers, validation rules, and compliance mappings.</p>
+                <p>Complete format reference for AGENTSECURITY.md. Fields, tiers, validation rules, and compliance
+                    mappings.</p>
             </a>
             <a href="adopt.html" class="card">
                 <h3>Adopt</h3>
@@ -284,27 +444,33 @@
         <div class="features">
             <div class="feature">
                 <h3>Secure by Design</h3>
-                <p>Define security boundaries before your agent runs, not after a breach. Architecture-level safety, not runtime patches.</p>
+                <p>Define security boundaries before your agent runs, not after a breach. Architecture-level safety, not
+                    runtime patches.</p>
             </div>
             <div class="feature">
                 <h3>Framework Agnostic</h3>
-                <p>Works with LangChain, CrewAI, AutoGen, Claude Code, and any future framework. One standard, everywhere.</p>
+                <p>Works with LangChain, CrewAI, AutoGen, Claude Code, and any future framework. One standard,
+                    everywhere.</p>
             </div>
             <div class="feature">
                 <h3>Progressive Disclosure</h3>
-                <p>Metadata loads at startup (~100 tokens). Full policy on activation. Detailed references on demand. Minimal context overhead.</p>
+                <p>Metadata loads at startup (~100 tokens). Full policy on activation. Detailed references on demand.
+                    Minimal context overhead.</p>
             </div>
             <div class="feature">
                 <h3>Honest About Limits</h3>
-                <p>Every template acknowledges what the spec can and cannot do. No security theater. No false promises.</p>
+                <p>Every template acknowledges what the spec can and cannot do. No security theater. No false promises.
+                </p>
             </div>
             <div class="feature">
                 <h3>CI/CD Ready</h3>
-                <p>GitHub Action blocks insecure PRs. JSON reports feed into your existing security pipeline. Pre-commit hooks available.</p>
+                <p>GitHub Action blocks insecure PRs. JSON reports feed into your existing security pipeline. Pre-commit
+                    hooks available.</p>
             </div>
             <div class="feature">
                 <h3>Compliance Mapped</h3>
-                <p>Each rule maps to OWASP LLM Top 10, NIST AI RMF, ISO 42001, and EU AI Act controls. Automated compliance reporting.</p>
+                <p>Each rule maps to OWASP LLM Top 10, NIST AI RMF, ISO 42001, and EU AI Act controls. Automated
+                    compliance reporting.</p>
             </div>
         </div>
 
@@ -321,9 +487,30 @@
                 AgentSecurity is an open standard.
                 Spec: <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> |
                 Tooling: <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache-2.0</a> |
-                <a href="https://github.com/agentsecurity/agentsecurity">GitHub</a>
+                <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>
             </p>
         </div>
     </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script>
+        // Mobile Nav
+        document.getElementById('mobile-menu').addEventListener('click', function () {
+            document.getElementById('nav-links').classList.toggle('active');
+        });
+
+        // Copy buttons
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const code = btn.nextElementSibling.innerText;
+                navigator.clipboard.writeText(code);
+                btn.innerText = 'Copied!';
+                setTimeout(() => btn.innerText = 'Copy', 2000);
+            });
+        });
+    </script>
 </body>
+
 </html>
