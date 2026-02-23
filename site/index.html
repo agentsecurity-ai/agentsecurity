@@ -356,12 +356,14 @@
             }
         }
     </style>
+    <link rel="icon" type="image/png" href="assets/logo.png">
 </head>
 
 <body>
     <nav>
         <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-            <a href="/" class="logo" style="display: flex; align-items: center; gap: 8px;"><img src="assets/logo.png" alt="AgentSecurity Logo" style="height: 32px; width: auto;" />AgentSecurity</a>
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 12px;"><img src="assets/logo.png"
+                    alt="AgentSecurity Logo" style="height: 48px; width: auto; margin-right: 4px;" />AgentSecurity</a>
             <button class="menu-toggle" id="mobile-menu">☰</button>
             <div class="links nav-links" id="nav-links">
                 <a href="what-is-agentsecurity.html">What is it?</a>
@@ -410,6 +412,55 @@ agentsec check .
 agentsec suggest .</code></pre>
             </div>
         </section>
+
+        <h2 class="section-title">How It Works in Practice</h2>
+        <div class="features" style="grid-template-columns: 1fr; gap: 32px; margin-bottom: 60px;">
+            <div class="feature"
+                style="background: var(--surface); padding: 32px; border: 1px solid var(--border); border-radius: 12px;">
+                <h3 style="color: var(--accent); margin-bottom: 12px; font-size: 20px;">1. Define the Contract (The
+                    Rulebook)</h3>
+                <p style="margin-bottom: 20px; font-size: 16px;">You configure an <code>AGENTSECURITY.md</code> file
+                    declaring exactly what your AI agent is allowed to do. For example, explicitly permitting internal
+                    docs reading while strictly forbidding shell commands.</p>
+                <div class="code-block">
+                    <pre><code class="language-yaml">constraints:
+  hard_no:
+    - "Never execute arbitrary shell commands"
+tools:
+  - name: internal_docs_reader
+    permission: read_only
+    scope:
+      allowed_paths: ["/docs/*"]</code></pre>
+                </div>
+            </div>
+
+            <div class="feature"
+                style="background: var(--surface); padding: 32px; border: 1px solid var(--border); border-radius: 12px;">
+                <h3 style="color: var(--red); margin-bottom: 12px; font-size: 20px;">2. CI/CD Enforcement (The Shield)
+                </h3>
+                <p style="margin-bottom: 20px; font-size: 16px;">If a teammate opens a Pull Request that deletes a
+                    security constraint or adds an overly broad wildcard permission (<code>*</code>), the GitHub Action
+                    <strong>automatically fails the pull request</strong> and blocks the insecure code from merging.</p>
+                <div class="code-block" style="border-left: 4px solid var(--red);">
+                    <pre><code class="language-bash" style="color: #ff8080;">FAIL [HIGH] Tool 'file_system' has wildcard scope ('*'). Narrow the scope to specific resources.
+RESULT: FAIL (high severity findings detected)</code></pre>
+                </div>
+            </div>
+
+            <div class="feature"
+                style="background: var(--surface); padding: 32px; border: 1px solid var(--border); border-radius: 12px;">
+                <h3 style="color: var(--blue); margin-bottom: 12px; font-size: 20px;">3. Runtime Protection (The Engine)
+                </h3>
+                <p style="margin-bottom: 20px; font-size: 16px;">Before your agent executes a tool at runtime, your
+                    python app strictly evaluates the <code>AGENTSECURITY.md</code> frontmatter block. If your LLM gets
+                    prompt-injected or goes rogue, the physical execution wrapper intercepts and denies the function
+                    call.</p>
+                <div class="code-block">
+                    <pre><code class="language-python">if tool.name not in policy['tools']:
+    raise SecurityPolicyViolation("Agent specifically attempted to use an unauthorized tool.")</code></pre>
+                </div>
+            </div>
+        </div>
 
         <h2 class="section-title">Navigate</h2>
         <div class="cards">
