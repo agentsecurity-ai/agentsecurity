@@ -68,6 +68,7 @@ jobs:
           set -euo pipefail
 
           for f in site/*.html; do
+            echo "Inspecting $f..."
             grep -q "<!DOCTYPE html>" "$f" || { echo "Missing DOCTYPE in $f"; exit 1; }
             grep -qi "<title>" "$f" || { echo "Missing <title> in $f"; exit 1; }
           done
