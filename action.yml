@@ -40,8 +40,10 @@ runs:
       id: validate
       shell: bash
       run: |
-        echo "Running agentsec validate on ${{ inputs.path }}"
-        agentsec validate "${{ inputs.path }}" --format json --output report.json
+        echo "Running agentsec validate on $INPUT_PATH"
+        agentsec validate "$INPUT_PATH" --format json --output report.json
+      env:
+        INPUT_PATH: ${{ inputs.path }}
         
         SCORE=$(jq -r '.score' report.json)
         echo "score=$SCORE" >> $GITHUB_OUTPUT
