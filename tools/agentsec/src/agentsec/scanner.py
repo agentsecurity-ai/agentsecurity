@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import ast
+import fnmatch
 import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from .advisor import FrameworkContext, detect_frameworks, generate_enforcement_guides, generate_recommendations
 from .parser import AgentSecurityPolicy
 from .validator import Finding
 
@@ -14,7 +16,7 @@ from .validator import Finding
 # Dangerous patterns to detect in any file
 DANGEROUS_PATTERNS = [
     (r"\beval\s*\(", "eval() usage detected", "OWASP-LLM02"),
-    (r"\bexec\s*\(", "exec() usage detected", "OWASP-LLM02"),
+    (r"(?<!\.)\bexec\s*\(", "exec() usage detected", "OWASP-LLM02"),
     (r"curl\s+.*\|\s*(ba)?sh", "curl-pipe-to-shell detected", "OWASP-LLM02"),
     (r"wget\s+.*\|\s*(ba)?sh", "wget-pipe-to-shell detected", "OWASP-LLM02"),
     (r"\b__import__\s*\(", "Dynamic __import__() detected", "OWASP-LLM02"),
@@ -65,6 +67,38 @@ PYTHON_TOOL_IMPORTS = {
     "kubernetes": "kubernetes",
 }
 
+# JavaScript/TypeScript imports that indicate tool usage
+JS_TOOL_IMPORTS = {
+    "child_process": "shell_execution",
+    "fs": "file_system",
+    "path": "file_system",
+    "fs-extra": "file_system",
+    "axios": "http_client",
+    "node-fetch": "http_client",
+    "got": "http_client",
+    "undici": "http_client",
+    "pg": "database",
+    "mysql2": "database",
+    "mongoose": "database",
+    "sequelize": "database",
+    "@prisma/client": "database",
+    "prisma": "database",
+    "drizzle-orm": "database",
+    "ioredis": "redis",
+    "redis": "redis",
+    "nodemailer": "email_service",
+    "openai": "openai_api",
+    "@anthropic-ai/sdk": "anthropic_api",
+    "@google/generative-ai": "gemini_api",
+    "ssh2": "ssh_client",
+    "dockerode": "docker",
+    "@kubernetes/client-node": "kubernetes",
+    "@aws-sdk/client-s3": "aws_sdk",
+    "aws-sdk": "aws_sdk",
+    "stripe": "stripe_api",
+    "@sendgrid/mail": "email_service",
+}
+
 # File extensions to scan
 SCANNABLE_EXTENSIONS = {
     ".py", ".js", ".ts", ".jsx", ".tsx", ".sh", ".bash",
@@ -85,6 +119,17 @@ SKIP_FILES = {
 
 IGNORE_COMMENT_RE = re.compile(r"#\s*agentsec-ignore:\s*(\S+)")
 
+_TEST_FILE_RE = re.compile(
+    r"(?:\.|/|^)(test|spec|tests|__tests__|__mocks__|fixtures|mocks|test-utils)"
+    r"(?:\.|/)",
+    re.IGNORECASE,
+)
+
+
+def _is_test_file(rel_path: str) -> bool:
+    """Check if a file path indicates a test context."""
+    return bool(_TEST_FILE_RE.search(rel_path))
+
 
 @dataclass
 class ScanResult:
@@ -93,6 +138,7 @@ class ScanResult:
     findings: list[Finding]
     files_scanned: int
     detected_tools: set[str]
+    framework_context: FrameworkContext | None = None
 
 
 def scan_codebase(
@@ -115,8 +161,9 @@ def scan_codebase(
     findings: list[Finding] = []
     files_scanned = 0
     detected_tools: set[str] = set()
+    ignore_patterns = _load_ignore_patterns(root)
 
-    for file_path in _iter_files(root):
+    for file_path in _iter_files(root, ignore_patterns):
         files_scanned += 1
         content = _read_file_safe(file_path)
         if content is None:
@@ -141,15 +188,22 @@ def scan_codebase(
                     ))
 
         # Check for hardcoded secrets
+        is_test = _is_test_file(rel_path)
         for pattern, desc in SECRET_PATTERNS:
             for match in re.finditer(pattern, content):
                 line_num = content[:match.start()].count("\n") + 1
                 rule_id = "ASEC-021"
                 if rule_id not in ignored_rules:
+                    if is_test:
+                        severity = "info"
+                        msg = f"{desc} in {rel_path}:{line_num} (test file — likely mock data)"
+                    else:
+                        severity = "high"
+                        msg = f"{desc} in {rel_path}:{line_num}"
                     findings.append(Finding(
                         rule_id=rule_id,
-                        severity="high",
-                        message=f"{desc} in {rel_path}:{line_num}",
+                        severity=severity,
+                        message=msg,
                         file=rel_path,
                         line=line_num,
                         control="OWASP-LLM06",
@@ -158,6 +212,11 @@ def scan_codebase(
         # Detect tool usage in Python files
         if file_path.suffix == ".py":
             tools = _detect_python_tools(content)
+            detected_tools.update(tools)
+
+        # Detect tool usage in JS/TS files
+        if file_path.suffix in {".js", ".ts", ".jsx", ".tsx"}:
+            tools = _detect_js_tools(content)
             detected_tools.update(tools)
 
     # Check for undeclared tool usage
@@ -174,14 +233,30 @@ def scan_codebase(
                 control="OWASP-LLM07",
             ))
 
+    # Detect frameworks and generate recommendations
+    ctx = detect_frameworks(root)
+    ctx.recommendations = generate_recommendations(
+        ctx=ctx,
+        tier=policy.security_tier,
+        enforcement=policy.enforcement,
+        declared_tools=declared,
+        detected_tools=detected_tools,
+        constraints=policy.constraints,
+        runtime=policy.runtime,
+        audit=policy.audit,
+        hitl=policy.human_in_the_loop,
+    )
+    ctx.enforcement_guides = generate_enforcement_guides(ctx, policy.security_tier)
+
     return ScanResult(
         findings=findings,
         files_scanned=files_scanned,
         detected_tools=detected_tools,
+        framework_context=ctx,
     )
 
 
-def _iter_files(root: Path):
+def _iter_files(root: Path, ignore_patterns: list[str] | None = None):
     """Iterate over scannable files in a directory tree."""
     if not root.is_dir():
         return
@@ -192,6 +267,13 @@ def _iter_files(root: Path):
             continue
         if item.name in SKIP_FILES:
             continue
+        if ignore_patterns:
+            rel = str(item.relative_to(root))
+            if any(
+                fnmatch.fnmatch(rel, pat) or fnmatch.fnmatch(item.name, pat)
+                for pat in ignore_patterns
+            ):
+                continue
         if item.suffix in SCANNABLE_EXTENSIONS:
             yield item
 
@@ -202,6 +284,22 @@ def _read_file_safe(path: Path) -> str | None:
         return path.read_text(encoding="utf-8", errors="ignore")
     except (PermissionError, OSError):
         return None
+
+
+def _load_ignore_patterns(root: Path) -> list[str]:
+    """Load ignore patterns from .agentsecignore file."""
+    ignore_file = root / ".agentsecignore"
+    if not ignore_file.is_file():
+        return []
+    patterns: list[str] = []
+    try:
+        for line in ignore_file.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#"):
+                patterns.append(stripped)
+    except (PermissionError, OSError):
+        return []
+    return patterns
 
 
 def _get_ignored_rules(content: str) -> set[str]:
@@ -241,6 +339,20 @@ def _detect_python_tools_regex(content: str) -> set[str]:
     tools = set()
     for module, tool_name in PYTHON_TOOL_IMPORTS.items():
         if re.search(rf"(?:^|\n)\s*(?:from\s+{module}|import\s+{module})\b", content):
+            tools.add(tool_name)
+    return tools
+
+
+def _detect_js_tools(content: str) -> set[str]:
+    """Detect tool usage from JS/TS import/require statements."""
+    tools = set()
+    for module, tool_name in JS_TOOL_IMPORTS.items():
+        escaped = re.escape(module)
+        pattern = (
+            rf"""(?:from\s+['"]{escaped}['"]"""
+            rf"""|require\s*\(\s*['"]{escaped}['"]\s*\))"""
+        )
+        if re.search(pattern, content):
             tools.add(tool_name)
     return tools
 

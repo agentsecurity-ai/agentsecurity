@@ -166,6 +166,35 @@
             <p>Developers are familiar with README.md files. By using markdown with frontmatter, we can combine strict,
                 parseable schema logic with deep, human-readable sections describing the threat model and incident
                 response procedures. We prioritize the developer experience.</p>
+
+            <h2>How do I detect which frameworks my project uses?</h2>
+            <p>Run <code>agentsec suggest .</code> to auto-detect your agent framework and get
+                tailored recommendations. It identifies 30+ Python frameworks (LangChain, CrewAI, AutoGen,
+                OpenAI SDK, Anthropic SDK, etc.), 17+ JavaScript/TypeScript frameworks (LangChain.js, Vercel AI SDK,
+                Mastra, etc.), and agent platforms (Claude Code, Cursor, GitHub Copilot). Use
+                <code>--format json</code> for machine-readable output.</p>
+
+            <h2>Can I protect AGENTSECURITY.md from being modified by an agent?</h2>
+            <p>Yes. Generate a lock file with <code>agentsec lock . --output .agentsecurity.lock</code>,
+                then verify in CI/CD with <code>agentsec verify . --lock .agentsecurity.lock</code>.
+                This detects unauthorized modifications using SHA-256 hashing. For strict/regulated tiers,
+                also set the file to read-only and use CODEOWNERS for review gating.</p>
+
+            <h2>Can I exclude files from scanning?</h2>
+            <p>Yes. Create a <code>.agentsecignore</code> file with glob patterns (same syntax as .gitignore)
+                to exclude vendor code, generated files, or other directories. The scanner also handles test
+                files intelligently &mdash; secrets in test files are reported as informational rather than high severity.</p>
+
+            <h2>Does agentsec support JavaScript and TypeScript?</h2>
+            <p>Yes. Full support for <code>.js</code>, <code>.ts</code>, <code>.jsx</code>, and <code>.tsx</code> files.
+                The scanner detects tool usage from <code>import</code> and <code>require</code> statements across 28+
+                common Node.js packages (axios, pg, @prisma/client, child_process, etc.) and reads
+                <code>package.json</code> for framework detection.</p>
+
+            <h2>What is the <code>agentsec suggest</code> command?</h2>
+            <p>It scans your codebase to identify which agent frameworks and platforms you use, then generates
+                prioritized recommendations (critical/high/medium/low) specific to your stack. It also produces
+                enforcement guides that show exactly how to make each framework respect the AGENTSECURITY.md policy.</p>
         </div>
     </div>
 

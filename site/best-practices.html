@@ -205,6 +205,46 @@
             <p>Security decays over time. The <code>metadata.last_reviewed</code> tag in AGENTSECURITY.md is crucial.
                 Establish a recurring calendar process to formally run <code>agentsec validate .</code> and verify that
                 new tools were not stealthily added to your repository.</p>
+
+            <h2>6. Tamper Protection with Lock Files</h2>
+            <p>Agents must <strong>never</strong> modify their own security policy. Use <code>agentsec lock</code>
+                to generate a SHA-256 hash of AGENTSECURITY.md, then verify it in CI to catch unauthorized changes:</p>
+            <div class="code-container">
+                <button class="copy-btn">Copy</button>
+                <pre><code class="language-bash"># Generate the lock file (commit to version control)
+agentsec lock . --output .agentsecurity.lock
+
+# Verify in CI/CD pipeline
+agentsec verify . --lock .agentsecurity.lock</code></pre>
+            </div>
+            <p>For strict/regulated tiers, also set the file as read-only (<code>chmod 444</code>) and require
+                CODEOWNERS review on any changes.</p>
+
+            <h2>7. Scan Exceptions with .agentsecignore</h2>
+            <p>Use <code>.agentsecignore</code> to exclude vendor code, generated files, and other
+                directories from security scanning:</p>
+            <div class="code-container">
+                <button class="copy-btn">Copy</button>
+                <pre><code class="language-bash"># .agentsecignore
+vendor/*
+*.generated.ts
+prisma/client/
+neutralino/</code></pre>
+            </div>
+            <p>Patterns follow <code>.gitignore</code> syntax. Use with caution and document why each exception exists.
+                The scanner already handles test files intelligently &mdash; secrets found in <code>*.test.ts</code>,
+                <code>__tests__/</code>, and <code>fixtures/</code> are automatically downgraded to informational severity.</p>
+
+            <h2>8. Framework-Specific Hardening</h2>
+            <p>Run <code>agentsec suggest .</code> to get tailored recommendations for your specific framework:</p>
+            <ul>
+                <li><strong>LangChain:</strong> Use a BaseCallbackHandler to validate tool calls against policy at runtime</li>
+                <li><strong>CrewAI:</strong> Set <code>allow_delegation=False</code> on agents that shouldn't delegate; use <code>max_iter</code> for step limits</li>
+                <li><strong>AutoGen:</strong> Create separate security policies per agent; set <code>max_consecutive_auto_reply</code> from policy</li>
+                <li><strong>Claude Code:</strong> Add AGENTSECURITY.md constraints to CLAUDE.md</li>
+                <li><strong>Cursor:</strong> Reference AGENTSECURITY.md rules in .cursorrules</li>
+                <li><strong>GitHub Copilot:</strong> Add constraints to .github/copilot-instructions.md</li>
+            </ul>
         </div>
     </div>
 

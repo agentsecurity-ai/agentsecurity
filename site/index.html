@@ -394,17 +394,20 @@
             <div class="code-block" style="position: relative;">
                 <button class="copy-btn"
                     style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
-                <pre><code class="language-bash"># Install the validator
+                <pre><code class="language-bash"># Install the CLI
 pip install agentsec
 
-# Initialize a security policy
-agentsec init --tier standard
+# Initialize a security policy (interactive)
+agentsec init
 
 # Validate your policy
 agentsec validate .
 
 # Scan your codebase for violations
-agentsec check .</code></pre>
+agentsec check .
+
+# Get framework-specific recommendations
+agentsec suggest .</code></pre>
             </div>
         </section>
 

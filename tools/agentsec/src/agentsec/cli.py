@@ -9,6 +9,7 @@ from pathlib import Path
 import click
 
 from . import __version__
+from .advisor import detect_frameworks, generate_enforcement_guides, generate_recommendations
 from .parser import ParseError, parse_policy
 from .reporter import report_badge, report_json, report_text
 from .scanner import scan_codebase
@@ -103,7 +104,10 @@ def check(path: str, fmt: str, fail_on: str):
     result.score = max(0, score)
 
     if fmt == "json":
-        click.echo(report_json(result))
+        out = result.to_dict()
+        if scan_result.framework_context:
+            out["framework_context"] = scan_result.framework_context.to_dict()
+        click.echo(json.dumps(out, indent=2))
     else:
         text = report_text(result)
         click.echo(text)
@@ -112,6 +116,25 @@ def check(path: str, fmt: str, fail_on: str):
         click.echo(f"  Files scanned: {scan_result.files_scanned}")
         if scan_result.detected_tools:
             click.echo(f"  Detected tools: {', '.join(sorted(scan_result.detected_tools))}")
+
+        # Show detected frameworks
+        ctx = scan_result.framework_context
+        if ctx and ctx.frameworks:
+            click.echo(f"  Frameworks: {', '.join(ctx.frameworks)}")
+        if ctx and ctx.agent_platforms:
+            click.echo(f"  Agent platforms: {', '.join(ctx.agent_platforms)}")
+
+        # Show top recommendations
+        if ctx and ctx.recommendations:
+            critical = [r for r in ctx.recommendations if r.priority == "critical"]
+            high = [r for r in ctx.recommendations if r.priority == "high"]
+            top = (critical + high)[:3]
+            if top:
+                click.echo("")
+                click.echo("  Recommendations:")
+                for r in top:
+                    click.echo(f"    [{r.priority.upper()}] {r.title}")
+
         click.echo("")
 
     if _should_fail(result, fail_on):
@@ -167,17 +190,33 @@ def report(path: str, fmt: str, output: str | None):
         click.echo(text)
 
 
+TIER_DESCRIPTIONS = {
+    "basic": "Prototypes & internal tools. Minimal friction, basic guardrails.",
+    "standard": "Production agents. Tool allowlisting, HITL for high-risk, OWASP alignment.",
+    "strict": "Sensitive data & financial systems. Mandatory sandbox, full audit, NIST alignment.",
+    "regulated": "Healthcare, finance, government. Tamper-proof audit, dual approval, full compliance.",
+}
+
+
 @main.command(name="init")
 @click.option("--tier", type=click.Choice(["basic", "standard", "strict", "regulated"]),
-              default="standard", help="Security tier template to use.")
+              default=None, help="Security tier template to use.")
 @click.option("--name", default=None, help="Agent name.")
 @click.option("--output", "-o", type=click.Path(), default="AGENTSECURITY.md",
               help="Output file path.")
-def init_cmd(tier: str, name: str | None, output: str):
+def init_cmd(tier: str | None, name: str | None, output: str):
     """Initialize a new AGENTSECURITY.md from a template.
 
     Creates a pre-configured security policy file based on the chosen tier.
+    When run without --tier, launches an interactive selector.
     """
+    # Interactive mode: prompt for tier and name if not provided
+    if tier is None:
+        tier = _interactive_tier_select()
+
+    if name is None:
+        name = click.prompt("Agent name", default="my-agent")
+
     output_path = Path(output)
     if output_path.exists():
         if not click.confirm(f"{output} already exists. Overwrite?"):
@@ -198,11 +237,13 @@ def init_cmd(tier: str, name: str | None, output: str):
             content = content.replace("name: my-regulated-agent", f"name: {name}", 1)
 
     output_path.write_text(content, encoding="utf-8")
-    click.echo(f"Created {output} (tier: {tier})")
+    click.echo(f"\nCreated {output} (tier: {tier})")
     click.echo("Next steps:")
     click.echo("  1. Edit the file to match your agent's actual tools and capabilities")
     click.echo("  2. Run 'agentsec validate .' to check your policy")
     click.echo("  3. Run 'agentsec check .' to scan your codebase")
+    click.echo("  4. Run 'agentsec suggest .' to get framework-specific recommendations")
+    click.echo("  5. Run 'agentsec lock .' to protect against tampering")
 
 
 @main.command(name="read-properties")
@@ -252,6 +293,166 @@ def to_prompt(path: str):
         "</agent_security_policy>"
     )
     click.echo(xml)
+
+
+@main.command()
+@click.argument("path", default=".", type=click.Path(exists=True))
+@click.option("--format", "fmt", type=click.Choice(["text", "json"]), default="text",
+              help="Output format.")
+def suggest(path: str, fmt: str):
+    """Detect frameworks and suggest security recommendations.
+
+    Scans the codebase to identify agent frameworks (LangChain, CrewAI,
+    OpenAI SDK, etc.), agent platforms (Claude Code, Cursor, Copilot),
+    and provides tailored recommendations for protecting AGENTSECURITY.md
+    and enforcing security boundaries.
+    """
+    try:
+        policy = parse_policy(path)
+    except FileNotFoundError as e:
+        click.echo(f"Error: {e}", err=True)
+        sys.exit(1)
+    except ParseError as e:
+        click.echo(f"Parse error: {e}", err=True)
+        sys.exit(1)
+
+    root = Path(path)
+    if root.is_file():
+        root = root.parent
+
+    ctx = detect_frameworks(root)
+    scan_result = scan_codebase(path, policy)
+
+    ctx.recommendations = generate_recommendations(
+        ctx=ctx,
+        tier=policy.security_tier,
+        enforcement=policy.enforcement,
+        declared_tools=policy.declared_tool_names,
+        detected_tools=scan_result.detected_tools,
+        constraints=policy.constraints,
+        runtime=policy.runtime,
+        audit=policy.audit,
+        hitl=policy.human_in_the_loop,
+    )
+    ctx.enforcement_guides = generate_enforcement_guides(ctx, policy.security_tier)
+
+    if fmt == "json":
+        click.echo(json.dumps(ctx.to_dict(), indent=2))
+    else:
+        click.echo("")
+        click.echo(f"  AgentSecurity Advisor — {policy.name}")
+        click.echo(f"  Tier: {policy.security_tier} | Language: {ctx.language or 'unknown'}")
+        click.echo("  " + "─" * 60)
+
+        if ctx.frameworks:
+            click.echo(f"\n  Detected frameworks: {', '.join(ctx.frameworks)}")
+        else:
+            click.echo("\n  No agent frameworks detected.")
+
+        if ctx.agent_platforms:
+            click.echo(f"  Agent platforms: {', '.join(ctx.agent_platforms)}")
+
+        if ctx.integrity_hash:
+            click.echo(f"  Policy hash: {ctx.integrity_hash[:16]}...")
+
+        if ctx.recommendations:
+            click.echo(f"\n  Recommendations ({len(ctx.recommendations)}):")
+            click.echo("  " + "─" * 60)
+            for i, r in enumerate(ctx.recommendations, 1):
+                click.echo(f"\n  {i}. [{r.priority.upper()}] {r.title}")
+                click.echo(f"     {r.description}")
+                click.echo(f"     Action:")
+                for line in r.action.split("\n"):
+                    click.echo(f"       {line}")
+
+        if ctx.enforcement_guides:
+            click.echo(f"\n  Enforcement Guides ({len(ctx.enforcement_guides)}):")
+            click.echo("  " + "─" * 60)
+            for guide in ctx.enforcement_guides:
+                click.echo(f"    - {guide}")
+
+        click.echo("")
+
+
+@main.command(name="lock")
+@click.argument("path", default=".", type=click.Path(exists=True))
+@click.option("--output", "-o", type=click.Path(), default=".agentsecurity.lock",
+              help="Lock file path.")
+def lock_cmd(path: str, output: str):
+    """Generate a lock file with the policy SHA-256 hash.
+
+    The lock file can be used in CI/CD to detect unauthorized modifications
+    to AGENTSECURITY.md. Agents must NEVER modify the lock file.
+    """
+    from .advisor import compute_policy_hash
+
+    root = Path(path)
+    if root.is_file():
+        root = root.parent
+
+    policy_hash = compute_policy_hash(root)
+    if not policy_hash:
+        click.echo("Error: No AGENTSECURITY.md found.", err=True)
+        sys.exit(1)
+
+    lock_content = (
+        f"# AgentSecurity Lock File — DO NOT MODIFY\n"
+        f"# This file is auto-generated by 'agentsec lock'\n"
+        f"# It verifies AGENTSECURITY.md has not been tampered with.\n"
+        f"#\n"
+        f"# To verify: agentsec verify . --lock {output}\n"
+        f"sha256: {policy_hash}\n"
+    )
+
+    Path(output).write_text(lock_content, encoding="utf-8")
+    click.echo(f"Lock file written to {output}")
+    click.echo(f"  SHA-256: {policy_hash}")
+    click.echo(f"  Add {output} to version control.")
+    click.echo(f"  Add to CI: agentsec verify . --lock {output}")
+
+
+@main.command(name="verify")
+@click.argument("path", default=".", type=click.Path(exists=True))
+@click.option("--lock", "lock_file", type=click.Path(exists=True), default=".agentsecurity.lock",
+              help="Lock file to verify against.")
+def verify_cmd(path: str, lock_file: str):
+    """Verify AGENTSECURITY.md has not been tampered with.
+
+    Compares the current SHA-256 hash of AGENTSECURITY.md against the
+    hash stored in the lock file. Exits with code 1 if tampered.
+    """
+    from .advisor import compute_policy_hash
+
+    root = Path(path)
+    if root.is_file():
+        root = root.parent
+
+    current_hash = compute_policy_hash(root)
+    if not current_hash:
+        click.echo("FAIL: No AGENTSECURITY.md found.", err=True)
+        sys.exit(1)
+
+    lock_path = Path(lock_file)
+    expected_hash = ""
+    for line in lock_path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line.startswith("sha256:"):
+            expected_hash = line.split(":", 1)[1].strip()
+            break
+
+    if not expected_hash:
+        click.echo(f"FAIL: No sha256 hash found in {lock_file}.", err=True)
+        sys.exit(1)
+
+    if current_hash == expected_hash:
+        click.echo(f"PASS: AGENTSECURITY.md integrity verified.")
+        click.echo(f"  Hash: {current_hash[:16]}...")
+    else:
+        click.echo(f"FAIL: AGENTSECURITY.md has been modified!")
+        click.echo(f"  Expected: {expected_hash[:16]}...")
+        click.echo(f"  Current:  {current_hash[:16]}...")
+        click.echo("  The security policy may have been tampered with.")
+        sys.exit(1)
 
 
 def _should_fail(result, fail_on: str) -> bool:
@@ -320,6 +521,27 @@ runtime:
     total_seconds: 600
 ```
 """
+
+
+def _interactive_tier_select() -> str:
+    """Interactive tier selection with descriptions."""
+    click.echo("")
+    click.echo("  Select a security tier for your agent:")
+    click.echo("  " + "-" * 60)
+
+    tiers = list(TIER_DESCRIPTIONS.items())
+    for i, (tier_name, desc) in enumerate(tiers, 1):
+        click.echo(f"  [{i}] {tier_name:10s} {desc}")
+
+    click.echo("  " + "-" * 60)
+
+    while True:
+        choice = click.prompt("  Your choice", type=int, default=2)
+        if 1 <= choice <= len(tiers):
+            selected = tiers[choice - 1][0]
+            click.echo(f"  Selected: {selected}")
+            return selected
+        click.echo("  Please enter a number between 1 and 4.")
 
 
 if __name__ == "__main__":

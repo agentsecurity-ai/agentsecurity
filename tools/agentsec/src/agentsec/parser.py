@@ -53,7 +53,7 @@ class ParseError(Exception):
     """Raised when AGENTSECURITY.md cannot be parsed."""
 
 
-_FRONTMATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
+_FRONTMATTER_RE = re.compile(r"\A---[ \t]*\n(.*?\n)---[ \t]*\n", re.DOTALL)
 _YAML_BLOCK_RE = re.compile(r"```ya?ml\s*\n(.*?)```", re.DOTALL)
 _SECTION_RE = re.compile(r"^##\s+(.+)$", re.MULTILINE)
 

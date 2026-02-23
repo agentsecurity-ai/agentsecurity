@@ -96,3 +96,57 @@ class TestParsePolicy:
         policy = parse_policy(FIXTURES / "valid_strict.md")
         assert "hard_no" in policy.constraints
         assert policy.constraints.get("max_autonomous_steps") == 50
+
+
+# ─── Upgrade 5: Robust Markdown Parsing ───────────────────────────────────
+
+class TestParserRobustness:
+    def test_frontmatter_with_yaml_blocks_in_body(self):
+        """Parsing should not crash when body contains ```yaml blocks."""
+        import tempfile
+        content = (
+            "---\n"
+            "name: test-agent\n"
+            "description: Test agent\n"
+            "security_tier: basic\n"
+            'version: "0.1"\n'
+            "---\n"
+            "\n"
+            "## Constraints\n"
+            "\n"
+            "```yaml\n"
+            "constraints:\n"
+            "  hard_no:\n"
+            '    - "Never run eval()"\n'
+            "```\n"
+            "\n"
+            "## Tools\n"
+            "\n"
+            "```yaml\n"
+            "tools:\n"
+            "  - name: file_system\n"
+            "    permission: read_only\n"
+            "```\n"
+        )
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+            f.write(content)
+            f.flush()
+            policy = parse_policy(f.name)
+            assert policy.name == "test-agent"
+            assert len(policy.tools) == 1
+
+    def test_frontmatter_with_dashes_in_description(self):
+        """Description containing dashes should not break frontmatter parsing."""
+        content = (
+            "---\n"
+            "name: test-agent\n"
+            'description: "Agent with multi-purpose design -- handles many tasks"\n'
+            "security_tier: basic\n"
+            'version: "0.1"\n'
+            "---\n"
+            "\n"
+            "## Body\n"
+        )
+        fm, body = parse_frontmatter(content)
+        assert fm["name"] == "test-agent"
+        assert "multi-purpose" in fm["description"]

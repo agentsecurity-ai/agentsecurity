@@ -161,3 +161,196 @@ class TestScanStats:
             result = scan_codebase(tmpdir, policy)
             assert result.files_scanned == 1
             assert not any("node_modules" in f.file for f in result.findings)
+
+
+# ─── Upgrade 1: Context-Aware exec() Pattern ─────────────────────────────
+
+class TestExecFalsePositives:
+    def test_exec_method_call_not_flagged(self):
+        """JS regex.exec() should not be flagged as dangerous."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "parser.js").write_text(
+                "const match = pattern.exec(str);\n"
+                "const m2 = re.exec(text);\n"
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            exec_findings = [f for f in result.findings if "exec()" in f.message]
+            assert len(exec_findings) == 0
+
+    def test_standalone_exec_still_flagged(self):
+        """Python exec(code) should still be flagged."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "bad.py").write_text("exec(code_string)")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert any("exec()" in f.message for f in result.findings)
+
+    def test_regex_exec_in_ts_not_flagged(self):
+        """TypeScript /regex/.exec(text) should not be flagged."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "utils.ts").write_text(
+                "const m = /abc/.exec(text);\n"
+                "const n = myRegex.exec(input);\n"
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            exec_findings = [f for f in result.findings if "exec()" in f.message]
+            assert len(exec_findings) == 0
+
+
+# ─── Upgrade 2: .agentsecignore File Support ──────────────────────────────
+
+class TestAgentsecIgnoreFile:
+    def test_agentsecignore_skips_files(self):
+        """Files matching .agentsecignore patterns should be skipped."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            vendor = Path(tmpdir) / "vendor"
+            vendor.mkdir()
+            (vendor / "lib.js").write_text("eval(x)")
+            (Path(tmpdir) / ".agentsecignore").write_text("vendor/*\n")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert not any("vendor" in f.file for f in result.findings)
+
+    def test_agentsecignore_glob_pattern(self):
+        """Glob patterns like *.generated.ts should work."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "schema.generated.ts").write_text("eval(x)")
+            (Path(tmpdir) / "app.ts").write_text("eval(x)")
+            (Path(tmpdir) / ".agentsecignore").write_text("*.generated.ts\n")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert not any("generated" in f.file for f in result.findings)
+            assert any("app.ts" in f.message for f in result.findings)
+
+    def test_agentsecignore_comments_blank_lines(self):
+        """Comments (#) and blank lines should be ignored."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            vendor = Path(tmpdir) / "vendor"
+            vendor.mkdir()
+            (vendor / "lib.js").write_text("eval(x)")
+            (Path(tmpdir) / ".agentsecignore").write_text(
+                "# This is a comment\n"
+                "\n"
+                "vendor/*\n"
+                "\n"
+                "# Another comment\n"
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert not any("vendor" in f.file for f in result.findings)
+
+    def test_no_agentsecignore_file(self):
+        """Scanner works normally when .agentsecignore doesn't exist."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "bad.py").write_text("eval(x)")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert any("eval()" in f.message for f in result.findings)
+
+
+# ─── Upgrade 3: JavaScript/TypeScript Tool Detection ──────────────────────
+
+class TestJSToolDetection:
+    def test_detect_js_import_axios(self):
+        """ES module import of axios should detect http_client."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "api.js").write_text('import axios from "axios";\n')
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert "http_client" in result.detected_tools
+
+    def test_detect_js_require_fs(self):
+        """CommonJS require of fs should detect file_system."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "server.js").write_text('const fs = require("fs");\n')
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert "file_system" in result.detected_tools
+
+    def test_detect_ts_prisma(self):
+        """TypeScript import of @prisma/client should detect database."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "db.ts").write_text(
+                'import { PrismaClient } from "@prisma/client";\n'
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert "database" in result.detected_tools
+
+    def test_detect_js_child_process(self):
+        """Import of child_process should detect shell_execution."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "runner.ts").write_text(
+                'import { exec } from "child_process";\n'
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert "shell_execution" in result.detected_tools
+
+    def test_js_declared_tool_not_flagged(self):
+        """Declared JS tools should not produce undeclared findings."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "db.js").write_text('const { Pool } = require("pg");\n')
+            policy = _make_policy(tools=[{"name": "database", "permission": "read_only"}])
+            result = scan_codebase(tmpdir, policy)
+            undeclared = [f for f in result.findings if "Undeclared tool" in f.message]
+            assert len(undeclared) == 0
+
+
+# ─── Upgrade 4: Test File Awareness ───────────────────────────────────────
+
+class TestTestFileAwareness:
+    def test_secret_in_test_file_is_info(self):
+        """Secrets in *.test.ts files should be severity 'info'."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "auth.test.ts").write_text(
+                'const API_KEY = "sk-1234567890abcdef1234567890";\n'
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            secret_findings = [f for f in result.findings if f.rule_id == "ASEC-021"]
+            assert len(secret_findings) > 0
+            assert all(f.severity == "info" for f in secret_findings)
+            assert all("test file" in f.message for f in secret_findings)
+
+    def test_secret_in_test_dir_is_info(self):
+        """Secrets in __tests__/ directories should be severity 'info'."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_dir = Path(tmpdir) / "__tests__"
+            test_dir.mkdir()
+            (test_dir / "config.js").write_text(
+                'const API_KEY = "sk-1234567890abcdef1234567890";\n'
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            secret_findings = [f for f in result.findings if f.rule_id == "ASEC-021"]
+            assert len(secret_findings) > 0
+            assert all(f.severity == "info" for f in secret_findings)
+
+    def test_secret_in_production_file_is_high(self):
+        """Secrets in production files should remain severity 'high'."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "config.py").write_text(
+                'API_KEY = "sk-1234567890abcdef1234567890"\n'
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            secret_findings = [f for f in result.findings if f.rule_id == "ASEC-021"]
+            assert len(secret_findings) > 0
+            assert all(f.severity == "high" for f in secret_findings)
+
+    def test_fixtures_dir_is_test_context(self):
+        """Secrets in fixtures/ directories should be severity 'info'."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fix_dir = Path(tmpdir) / "fixtures"
+            fix_dir.mkdir()
+            (fix_dir / "mock_data.json").write_text(
+                '{"api_key": "sk-1234567890abcdef1234567890"}\n'
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            secret_findings = [f for f in result.findings if f.rule_id == "ASEC-021"]
+            assert len(secret_findings) > 0
+            assert all(f.severity == "info" for f in secret_findings)

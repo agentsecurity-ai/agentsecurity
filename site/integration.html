@@ -130,6 +130,72 @@ def execute_tool(tool_name, parameters):
             
             <p>Append this dynamically generated string to the end of any system prompt so the LLM is explicitly aware of its boundaries and doesn't hallucinate API access.</p>
 
+            <h2>Framework Auto-Detection</h2>
+            <p>The CLI automatically identifies your agent framework and generates tailored recommendations:</p>
+            <div class="code-container">
+                <button class="copy-btn">Copy</button>
+                <pre><code class="language-bash">$ agentsec suggest .
+
+  AgentSecurity Advisor — my-agent
+  Tier: standard | Language: python
+  ────────────────────────────────────────────
+
+  Detected frameworks: LangChain, OpenAI SDK
+  Agent platforms: Claude Code
+
+  Recommendations (5):
+    1. [CRITICAL] Protect AGENTSECURITY.md from agent modification
+    2. [HIGH] LangChain: Declare all tools in AGENTSECURITY.md
+    3. [HIGH] Claude Code: Add rules to CLAUDE.md
+    ...</code></pre>
+            </div>
+            <p>Supported frameworks:</p>
+            <ul>
+                <li><strong>Python:</strong> LangChain, CrewAI, AutoGen, OpenAI SDK, Anthropic SDK, Gemini SDK, LlamaIndex, LiteLLM, Haystack, PydanticAI, Semantic Kernel</li>
+                <li><strong>JavaScript/TypeScript:</strong> LangChain.js, Vercel AI SDK, OpenAI SDK, Anthropic SDK, Mastra, LlamaIndex.TS</li>
+                <li><strong>Agent Platforms:</strong> Claude Code (CLAUDE.md), Cursor (.cursorrules), GitHub Copilot (copilot-instructions.md)</li>
+            </ul>
+
+            <h2>Tamper Protection</h2>
+            <p>Agents must <strong>never</strong> modify their own security policy. AGENTSECURITY.md defines the boundaries
+                &mdash; the agent operates within them, not around them.</p>
+            <div class="code-container">
+                <button class="copy-btn">Copy</button>
+                <pre><code class="language-bash"># Lock the policy (generates .agentsecurity.lock)
+$ agentsec lock .
+Lock file written to .agentsecurity.lock
+  SHA-256: 0313f8f2d0aa9a2a...
+
+# Verify in CI/CD (exits 1 if tampered)
+$ agentsec verify . --lock .agentsecurity.lock
+PASS: AGENTSECURITY.md integrity verified.</code></pre>
+            </div>
+            <p>For strict/regulated tiers, also consider:</p>
+            <ul>
+                <li>Set AGENTSECURITY.md to read-only: <code>chmod 444 AGENTSECURITY.md</code></li>
+                <li>Use CODEOWNERS to require security team review on changes</li>
+                <li>Mount as read-only volume in Docker: <code>-v ./AGENTSECURITY.md:/app/AGENTSECURITY.md:ro</code></li>
+            </ul>
+
+            <h2>JavaScript / TypeScript Support</h2>
+            <p>The scanner fully supports JS/TS codebases. It detects tool usage from
+                <code>import</code> and <code>require</code> statements across 28+ common Node.js packages:</p>
+            <div class="code-container">
+                <button class="copy-btn">Copy</button>
+                <pre><code class="language-bash"># Detects: axios, pg, @prisma/client, child_process, etc.
+$ agentsec check . --format json
+
+# Output includes detected_tools and framework_context
+{
+  "score": 85,
+  "framework_context": {
+    "frameworks": ["Vercel AI SDK"],
+    "language": "javascript",
+    "recommendations": [...]
+  }
+}</code></pre>
+            </div>
+
         </div>
     </div>
 
