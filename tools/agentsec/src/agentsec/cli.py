@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hmac
 import json
 import sys
 from pathlib import Path
@@ -217,7 +218,12 @@ def init_cmd(tier: str | None, name: str | None, output: str):
     if name is None:
         name = click.prompt("Agent name", default="my-agent")
 
-    output_path = Path(output)
+    output_path = Path(output).resolve()
+    cwd = Path.cwd().resolve()
+    if not str(output_path).startswith(str(cwd)):
+        click.echo("Error: Output path must be within the current directory.", err=True)
+        sys.exit(1)
+
     if output_path.exists():
         if not click.confirm(f"{output} already exists. Overwrite?"):
             click.echo("Aborted.")
@@ -386,9 +392,15 @@ def lock_cmd(path: str, output: str):
     """
     from .advisor import compute_policy_hash
 
-    root = Path(path)
+    root = Path(path).resolve()
     if root.is_file():
         root = root.parent
+
+    # Confine lock file output to within the project directory
+    lock_output = Path(output).resolve()
+    if not str(lock_output).startswith(str(root)):
+        click.echo("Error: Lock file path must be within the project directory.", err=True)
+        sys.exit(1)
 
     policy_hash = compute_policy_hash(root)
     if not policy_hash:
@@ -404,7 +416,7 @@ def lock_cmd(path: str, output: str):
         f"sha256: {policy_hash}\n"
     )
 
-    Path(output).write_text(lock_content, encoding="utf-8")
+    lock_output.write_text(lock_content, encoding="utf-8")
     click.echo(f"Lock file written to {output}")
     click.echo(f"  SHA-256: {policy_hash}")
     click.echo(f"  Add {output} to version control.")
@@ -449,7 +461,8 @@ def verify_cmd(path: str, lock_file: str):
         click.echo(f"FAIL: No sha256 hash found in {lock_file}.", err=True)
         sys.exit(1)
 
-    if current_hash == expected_hash:
+    # Use timing-safe comparison to prevent hash oracle side-channel attacks
+    if hmac.compare_digest(current_hash, expected_hash):
         click.echo(f"PASS: AGENTSECURITY.md integrity verified.")
         click.echo(f"  Hash: {current_hash[:16]}...")
     else:
@@ -472,13 +485,19 @@ def _should_fail(result, fail_on: str) -> bool:
 
 
 def _xml_escape(text: str) -> str:
-    """Escape XML special characters."""
+    """Escape XML special characters and control characters.
+
+    Prevents XML injection via newlines, carriage returns, and special chars
+    that could break the XML structure of to-prompt output.
+    """
     return (
         text.replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
         .replace('"', "&quot;")
         .replace("'", "&apos;")
+        .replace("\n", "&#10;")
+        .replace("\r", "&#13;")
     )
 
 

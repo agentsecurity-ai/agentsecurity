@@ -5,6 +5,7 @@ from __future__ import annotations
 import ast
 import fnmatch
 import re
+import unicodedata
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -20,6 +21,7 @@ DANGEROUS_PATTERNS = [
     (r"curl\s+.*\|\s*(ba)?sh", "curl-pipe-to-shell detected", "OWASP-LLM02"),
     (r"wget\s+.*\|\s*(ba)?sh", "wget-pipe-to-shell detected", "OWASP-LLM02"),
     (r"\b__import__\s*\(", "Dynamic __import__() detected", "OWASP-LLM02"),
+    (r"importlib\.import_module\s*\(", "Dynamic importlib.import_module() detected", "OWASP-LLM02"),
     (r"subprocess\.call\s*\(\s*['\"]", "subprocess.call with string command", "OWASP-LLM02"),
     (r"os\.system\s*\(", "os.system() usage detected", "OWASP-LLM02"),
     (r"os\.popen\s*\(", "os.popen() usage detected", "OWASP-LLM02"),
@@ -27,7 +29,7 @@ DANGEROUS_PATTERNS = [
 
 # Secret patterns to detect
 SECRET_PATTERNS = [
-    (r"(?i)(api[_-]?key|apikey)\s*[=:]\s*['\"][a-zA-Z0-9]{16,}", "Possible API key"),
+    (r"(?i)(api[_-]?key|apikey)\s*[=:]\s*['\"][a-zA-Z0-9_-]{16,}", "Possible API key"),
     (r"(?i)(secret|password|passwd|pwd)\s*[=:]\s*['\"][^'\"]{8,}", "Possible hardcoded secret"),
     (r"(?i)aws[_-]?access[_-]?key[_-]?id\s*[=:]\s*['\"]AKIA", "AWS Access Key ID"),
     (r"(?i)aws[_-]?secret[_-]?access[_-]?key\s*[=:]\s*['\"][a-zA-Z0-9/+=]{40}", "AWS Secret Key"),
@@ -118,6 +120,14 @@ SKIP_FILES = {
 }
 
 IGNORE_COMMENT_RE = re.compile(r"#\s*agentsec-ignore:\s*(\S+)")
+
+# Zero-width Unicode characters used to evade pattern matching
+_ZERO_WIDTH_RE = re.compile(
+    "[\u200b\u200c\u200d\u200e\u200f\u2060\u2061\u2062\u2063\u2064\ufeff]"
+)
+
+# Maximum ratio of files that .agentsecignore can skip before warning
+_MAX_IGNORE_RATIO = 0.95
 
 _TEST_FILE_RE = re.compile(
     r"(?:\.|/|^)(test|spec|tests|__tests__|__mocks__|fixtures|mocks|test-utils)"
@@ -257,11 +267,27 @@ def scan_codebase(
 
 
 def _iter_files(root: Path, ignore_patterns: list[str] | None = None):
-    """Iterate over scannable files in a directory tree."""
+    """Iterate over scannable files in a directory tree.
+
+    Skips symlinks to prevent infinite recursion (symlink loop DoS).
+    """
     if not root.is_dir():
         return
+    seen_inodes: set[tuple[int, int]] = set()
     for item in root.rglob("*"):
         if item.is_dir():
+            continue
+        # Skip symlinks to prevent infinite recursion and symlink attacks
+        if item.is_symlink():
+            continue
+        # Deduplicate by inode to handle hard links
+        try:
+            stat = item.stat()
+            inode_key = (stat.st_dev, stat.st_ino)
+            if inode_key in seen_inodes:
+                continue
+            seen_inodes.add(inode_key)
+        except OSError:
             continue
         if any(skip in item.parts for skip in SKIP_DIRS):
             continue
@@ -279,15 +305,28 @@ def _iter_files(root: Path, ignore_patterns: list[str] | None = None):
 
 
 def _read_file_safe(path: Path) -> str | None:
-    """Read a file, returning None if it can't be read."""
+    """Read a file, returning None if it can't be read.
+
+    Applies Unicode normalization (NFC) and strips zero-width characters
+    to prevent homoglyph and invisible-character evasion attacks.
+    """
     try:
-        return path.read_text(encoding="utf-8", errors="ignore")
+        content = path.read_text(encoding="utf-8", errors="ignore")
     except (PermissionError, OSError):
         return None
+    # Normalize Unicode to NFC to collapse homoglyphs like Cyrillic 'е' → Latin 'e'
+    content = unicodedata.normalize("NFC", content)
+    # Strip zero-width characters that could hide dangerous calls (e.g. eval\u200b())
+    content = _ZERO_WIDTH_RE.sub("", content)
+    return content
 
 
 def _load_ignore_patterns(root: Path) -> list[str]:
-    """Load ignore patterns from .agentsecignore file."""
+    """Load ignore patterns from .agentsecignore file.
+
+    Rejects overly broad patterns (bare '*') that would suppress ALL findings,
+    as this could be used by an attacker to silently disable the scanner.
+    """
     ignore_file = root / ".agentsecignore"
     if not ignore_file.is_file():
         return []
@@ -296,6 +335,9 @@ def _load_ignore_patterns(root: Path) -> list[str]:
         for line in ignore_file.read_text(encoding="utf-8").splitlines():
             stripped = line.strip()
             if stripped and not stripped.startswith("#"):
+                # Reject bare wildcards that would match everything
+                if stripped in ("*", "**", "**/*", "*.*"):
+                    continue
                 patterns.append(stripped)
     except (PermissionError, OSError):
         return []

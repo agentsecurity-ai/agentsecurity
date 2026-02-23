@@ -1,5 +1,8 @@
 """Tests for the codebase scanner."""
 
+from __future__ import annotations
+
+import os
 import tempfile
 from pathlib import Path
 
@@ -354,3 +357,149 @@ class TestTestFileAwareness:
             secret_findings = [f for f in result.findings if f.rule_id == "ASEC-021"]
             assert len(secret_findings) > 0
             assert all(f.severity == "info" for f in secret_findings)
+
+
+# ─── Red Team Fixes: Security Hardening Tests ─────────────────────────────
+
+class TestAPIKeyRegexHyphens:
+    """Red team fix: API key regex must match keys containing hyphens."""
+
+    def test_api_key_with_hyphens_detected(self):
+        """API keys containing hyphens should be detected (sk-proj-...)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "config.py").write_text(
+                'API_KEY = "sk-proj-abc123def456ghi789jkl012mno345"'
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            secret_findings = [f for f in result.findings if f.rule_id == "ASEC-021"]
+            assert len(secret_findings) > 0
+
+    def test_anthropic_key_format_detected(self):
+        """Anthropic API keys (sk-ant-api03-...) should be detected."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "config.py").write_text(
+                'KEY = "sk-ant-api03-abcdefghijklmnopqrstuvwxyz1234567890"'
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            secret_findings = [f for f in result.findings if f.rule_id == "ASEC-021"]
+            assert len(secret_findings) > 0
+
+
+class TestAgentsecIgnoreWildcard:
+    """Red team fix: bare wildcard in .agentsecignore must not suppress all findings."""
+
+    def test_bare_wildcard_rejected(self):
+        """A bare '*' in .agentsecignore should not suppress findings."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "bad.py").write_text("eval(user_input)")
+            (Path(tmpdir) / ".agentsecignore").write_text("*\n")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert any("eval()" in f.message for f in result.findings)
+
+    def test_double_star_wildcard_rejected(self):
+        """A '**' in .agentsecignore should not suppress findings."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "bad.py").write_text("eval(user_input)")
+            (Path(tmpdir) / ".agentsecignore").write_text("**\n")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert any("eval()" in f.message for f in result.findings)
+
+    def test_specific_pattern_still_works(self):
+        """Specific patterns like 'vendor/*' should still work."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            vendor = Path(tmpdir) / "vendor"
+            vendor.mkdir()
+            (vendor / "lib.js").write_text("eval(x)")
+            (Path(tmpdir) / "app.py").write_text("eval(x)")
+            (Path(tmpdir) / ".agentsecignore").write_text("vendor/*\n")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            # vendor file should be skipped, app.py should still be flagged
+            assert not any("vendor" in f.file for f in result.findings)
+            assert any("app.py" in f.message for f in result.findings)
+
+
+class TestUnicodeBypass:
+    """Red team fix: Unicode evasion techniques must be neutralized."""
+
+    def test_zero_width_char_in_eval_detected(self):
+        """eval() with zero-width character inserted should still be detected."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Insert zero-width space between 'eval' and '('
+            (Path(tmpdir) / "sneaky.py").write_text("eval\u200b(user_input)")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert any("eval()" in f.message for f in result.findings)
+
+    def test_zero_width_joiner_stripped(self):
+        """Zero-width joiner in exec() should still be detected."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "sneaky.py").write_text("ex\u200dec(code)")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert any("exec()" in f.message for f in result.findings)
+
+
+class TestDynamicImportDetection:
+    """Red team fix: importlib.import_module() must be detected."""
+
+    def test_importlib_import_module_flagged(self):
+        """importlib.import_module() should be flagged as dangerous."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "loader.py").write_text(
+                "import importlib\n"
+                "mod = importlib.import_module('subprocess')\n"
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert any("importlib" in f.message for f in result.findings)
+
+    def test_dunder_import_still_flagged(self):
+        """__import__() should still be flagged."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            (Path(tmpdir) / "loader.py").write_text(
+                "mod = __import__('os')\n"
+            )
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            assert any("__import__" in f.message for f in result.findings)
+
+
+class TestSymlinkProtection:
+    """Red team fix: symlinks must be skipped to prevent infinite recursion."""
+
+    def test_symlink_loop_does_not_crash(self):
+        """A symlink loop should not cause infinite recursion."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir_path = Path(tmpdir)
+            # Create a symlink loop: dir_a/link -> dir_a
+            dir_a = tmpdir_path / "dir_a"
+            dir_a.mkdir()
+            (dir_a / "safe.py").write_text("x = 1")
+            try:
+                (dir_a / "loop").symlink_to(dir_a)
+            except OSError:
+                pytest.skip("Cannot create symlinks on this system")
+            policy = _make_policy()
+            # Should complete without hanging or crashing
+            result = scan_codebase(tmpdir, policy)
+            assert result.files_scanned >= 1
+
+    def test_symlink_to_file_skipped(self):
+        """Symlinked files should be skipped."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir_path = Path(tmpdir)
+            (tmpdir_path / "real.py").write_text("eval(bad)")
+            try:
+                (tmpdir_path / "link.py").symlink_to(tmpdir_path / "real.py")
+            except OSError:
+                pytest.skip("Cannot create symlinks on this system")
+            policy = _make_policy()
+            result = scan_codebase(tmpdir, policy)
+            # Only the real file should be scanned, not the symlink
+            eval_findings = [f for f in result.findings if "eval()" in f.message]
+            assert len(eval_findings) == 1
