@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title>AgentSecurity adopt.html</title>
+    <title>Adopt | AgentSecurity</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
@@ -219,7 +219,8 @@
 <body>
     <nav>
         <div class="inner">
-            <a href="/" class="logo" style="display: flex; align-items: center; gap: 12px;"><img src="assets/logo.png" alt="AgentSecurity Logo" style="height: 48px; width: auto; margin-right: 4px;" />AgentSecurity</a>
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 12px;"><img src="assets/logo.png"
+                    alt="AgentSecurity Logo" style="height: 48px; width: auto; margin-right: 4px;" />AgentSecurity</a>
             <button class="menu-toggle" id="mobile-menu">☰</button>
             <div class="nav-links" id="nav-links">
                 <a href="what-is-agentsecurity.html">What is it?</a>
@@ -278,7 +279,8 @@ agentsec lock .
 # Verify integrity (use in CI/CD)
 agentsec verify .</pre>
             <p>The lock file stores a SHA-256 hash of your policy. If an agent or process
-                modifies <code>AGENTSECURITY.md</code>, <code>agentsec verify</code> will catch it and exit with code 1.</p>
+                modifies <code>AGENTSECURITY.md</code>, <code>agentsec verify</code> will catch it and exit with code 1.
+            </p>
         </div>
 
         <h2>CI/CD Integration</h2>
@@ -370,7 +372,8 @@ agentsec lock .
 agentsec verify . --lock .agentsecurity.lock</pre>
         <p>Add <code>.agentsecurity.lock</code> to version control and run
             <code>agentsec verify</code> in your CI pipeline to block deployments
-            if the policy has been altered.</p>
+            if the policy has been altered.
+        </p>
 
         <h2>Scan Exceptions</h2>
         <p>Use <code>.agentsecignore</code> to exclude files from scanning (vendor code, generated code, etc.):</p>
