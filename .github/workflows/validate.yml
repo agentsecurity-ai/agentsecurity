@@ -65,9 +65,10 @@ jobs:
         run: pip install jsonschema
 
       - name: Validate JSON Schema is valid
-        run: python -c "
-import json, jsonschema;
-schema = json.load(open('spec/agentsecurity.schema.json'));
-jsonschema.Draft202012Validator.check_schema(schema);
-print('Schema is valid')
-"
+        run: |
+          python -c "
+          import json, jsonschema;
+          schema = json.load(open('spec/agentsecurity.schema.json'));
+          jsonschema.Draft202012Validator.check_schema(schema);
+          print('Schema is valid')
+          "
