@@ -13,7 +13,7 @@
 # - Data residency and classification requirements
 # - Bi-weekly policy review cadence
 #
-# Docs: https://agentsecurity.dev/specification
+# Docs: https://agentsecurity.in/specification
 # =============================================================================
 
 name: my-regulated-agent          # Replace with your agent name

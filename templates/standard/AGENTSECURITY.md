@@ -5,7 +5,7 @@
 # Balanced security policy for production agents handling non-sensitive data.
 # Enforces tool allowlisting, HITL for high-risk actions, and audit logging.
 #
-# Docs: https://agentsecurity.dev/specification
+# Docs: https://agentsecurity.in/specification
 # =============================================================================
 
 name: my-agent                    # Replace with your agent name

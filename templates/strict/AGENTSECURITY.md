@@ -8,7 +8,7 @@
 # All tools MUST be declared. All destructive actions require human approval.
 # Sandbox is mandatory. Full audit logging is required.
 #
-# Docs: https://agentsecurity.dev/specification
+# Docs: https://agentsecurity.in/specification
 # =============================================================================
 
 name: my-agent                    # Replace with your agent name

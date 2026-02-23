@@ -40,7 +40,7 @@ Thank you for your interest in contributing to the AgentSecurity open standard.
 
 ```bash
 # Clone the repo
-git clone https://github.com/agentsecurity/agentsecurity.git
+git clone https://github.com/agentsecurity-ai/agentsecurity.git
 cd agentsecurity
 
 # Install the CLI in development mode

@@ -494,7 +494,11 @@ def _check_constraints(policy: AgentSecurityPolicy, result: ValidationResult):
     max_steps = policy.constraints.get("max_autonomous_steps")
     tier_limits = {"basic": None, "standard": 100, "strict": 50, "regulated": 25}
     expected = tier_limits.get(policy.security_tier)
-    if expected and max_steps and int(max_steps) > expected:
+    try:
+        max_steps_int = int(max_steps) if max_steps is not None else None
+    except (ValueError, TypeError):
+        max_steps_int = None
+    if expected and max_steps_int is not None and max_steps_int > expected:
         result.findings.append(Finding(
             rule_id="ASEC-016",
             severity="low",

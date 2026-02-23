@@ -24,7 +24,7 @@ def main():
     Validate AGENTSECURITY.md policies, scan codebases for violations,
     and generate security scorecards.
 
-    Docs: https://agentsecurity.dev
+    Docs: https://agentsecurity.in
     """
     pass
 
@@ -434,7 +434,12 @@ def verify_cmd(path: str, lock_file: str):
 
     lock_path = Path(lock_file)
     expected_hash = ""
-    for line in lock_path.read_text(encoding="utf-8").splitlines():
+    try:
+        lock_content = lock_path.read_text(encoding="utf-8")
+    except (PermissionError, OSError) as e:
+        click.echo(f"FAIL: Cannot read lock file: {e}", err=True)
+        sys.exit(1)
+    for line in lock_content.splitlines():
         line = line.strip()
         if line.startswith("sha256:"):
             expected_hash = line.split(":", 1)[1].strip()

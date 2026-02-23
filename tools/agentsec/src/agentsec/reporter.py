@@ -115,7 +115,7 @@ def report_badge(result: ValidationResult) -> str:
     return (
         f"[![AgentSecurity: {tier}]"
         f"(https://img.shields.io/badge/AgentSecurity-{tier}_{score}%25-{color})]"
-        f"(https://agentsecurity.dev)"
+        f"(https://agentsecurity.in)"
     )
 
 

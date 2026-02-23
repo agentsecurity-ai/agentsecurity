@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "Apache-2.0"}
 requires-python = ">=3.9"
 authors = [
-    {name = "AgentSecurity Project", email = "hello@agentsecurity.dev"}
+    {name = "AgentSecurity Project", email = "hello@agentsecurity.in"}
 ]
 keywords = ["ai", "agents", "security", "validation", "compliance", "owasp", "nist"]
 classifiers = [
@@ -42,10 +42,10 @@ dev = [
 agentsec = "agentsec.cli:main"
 
 [project.urls]
-Homepage = "https://agentsecurity.dev"
-Repository = "https://github.com/agentsecurity/agentsecurity"
-Documentation = "https://agentsecurity.dev/specification"
-Issues = "https://github.com/agentsecurity/agentsecurity/issues"
+Homepage = "https://agentsecurity.in"
+Repository = "https://github.com/agentsecurity-ai/agentsecurity"
+Documentation = "https://agentsecurity.in/specification"
+Issues = "https://github.com/agentsecurity-ai/agentsecurity/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

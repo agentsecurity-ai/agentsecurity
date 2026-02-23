@@ -464,7 +464,7 @@ All suppressions are included in the report for audit trail.
 
 ## Contributing
 
-This is an open standard. Contributions welcome at [github.com/agentsecurity/agentsecurity](https://github.com/agentsecurity/agentsecurity).
+This is an open standard. Contributions welcome at [github.com/agentsecurity-ai/agentsecurity](https://github.com/agentsecurity-ai/agentsecurity).
 
 - **Spec changes:** Open an RFC issue before submitting PRs
 - **New rules:** Add to `tools/agentsec/src/agentsec/rules/` with tests
