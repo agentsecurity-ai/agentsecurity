@@ -2,7 +2,10 @@
 <html lang="en">
 
 <head>
+    <title>AGENTSECURITY.md Specification | Technical Standard</title>
     <meta charset="UTF-8">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description"
         content="The formal specification for AGENTSECURITY.md files including frontmatter schema and validation rules.">
@@ -207,15 +210,16 @@
             text-decoration: none;
         }
     </style>
+
 </head>
 
 <body>
     <nav>
         <div class="inner">
-            <a href="/" class="logo" style="display: flex; align-items: center; gap: 8px;"><img src="assets/logo.png" alt="AgentSecurity Logo" style="height: 32px; width: auto;" />AgentSecurity</a>
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 2px;"><img src="assets/logo.png" alt="Logo" style="height: 20px; width: auto;">AgentSecurity</a>
             <button class="menu-toggle" id="mobile-menu">☰</button>
             <div class="nav-links" id="nav-links">
-                <a href="what-is-agentsecurity.html">What is it?</a>
+                <a href="about.html">What is it?</a>
                 <a href="specification.html">Specification</a>
                 <a href="adopt.html">Adopt</a>
                 <a href="integration.html">Integration</a>
@@ -294,6 +298,12 @@
                 <td>{}</td>
                 <td>Arbitrary key-value pairs (author, org, last_reviewed, contact)</td>
             </tr>
+            <tr>
+                <td><code>extends</code></td>
+                <td>array</td>
+                <td>[]</td>
+                <td>List of paths to other policy files to inherit constraints and tools from.</td>
+            </tr>
         </table>
 
         <h2>Example</h2>
@@ -334,6 +344,23 @@ tools:
       allowed_paths: ["./src/"]
     requires_confirmation: false
 ```</code></pre>
+
+        <h2>Policy Modularity (Extends)</h2>
+        <p>
+            AgentSecurity supports modular policies via the <code>extends</code> field. This allows you to define
+            reusable "Security Packs" for common constraints or tool sets.
+        </p>
+        <pre><code class="language-markdown">---
+name: my-agent
+extends:
+  - "../packs/pii-protection.md"
+  - "../packs/hardened-runtime.md"
+---</code></pre>
+        <p>
+            When a policy extends others, the properties are merged recursively. The primary policy always
+            takes precedence over extended ones. Lists like <code>hard_no</code> are combined, and tools
+            are merged by name.
+        </p>
 
         <h2>Tier Definitions</h2>
 
@@ -518,7 +545,7 @@ tools:
 
         <p>
             Full specification source: <a
-                href="https://github.com/agentsecurity/agentsecurity/blob/main/spec/AGENTSECURITY.md"
+                href="https://github.com/agentsecurity-ai/agentsecurity/blob/main/spec/AGENTSECURITY.md"
                 style="color:var(--accent)">spec/AGENTSECURITY.md</a>
         </p>
     </div>
@@ -527,7 +554,7 @@ tools:
         <div class="container">
             <p>
                 <a href="/">Home</a> |
-                <a href="what-is-agentsecurity.html">What is it?</a> |
+                <a href="about.html">What is it?</a> |
                 <a href="adopt.html">Adopt</a> |
                 <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>
             </p>

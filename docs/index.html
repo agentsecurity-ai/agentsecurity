@@ -3,12 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AgentSecurity | Open-Source Security Standard for AI Agents</title>
     <meta name="description"
         content="AgentSecurity is the industry-standard framework for securing autonomous AI agents. Define unbreakable security boundaries, guardrails, and policies.">
     <meta name="keywords"
-        content="AgentSecurity, agent security, AI agents, LLM security, autonomous agents, runtime guardrails, OWASP LLM, LangChain security, CrewAI security">
+        content="AgentSecurity, agent security, AI agents, LLM security, autonomous agents, runtime guardrails, OWASP LLM, LangChain security, CrewAI security, AI safety, agent policy, AGENTSECURITY.md">
     <link rel="canonical" href="https://agentsecurity.in/">
     <meta property="og:url" content="https://agentsecurity.in/">
     <meta property="og:site_name" content="AgentSecurity">
@@ -20,6 +22,29 @@
     <meta name="twitter:title" content="AgentSecurity | Open-Source Security Standard for AI Agents">
     <meta name="twitter:description" content="Enforce safe defaults before your AI agent runs with AgentSecurity.">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "AgentSecurity",
+      "operatingSystem": "Independent",
+      "applicationCategory": "SecurityApplication",
+      "description": "The open-source standard for defining and enforcing security boundaries of autonomous AI agents.",
+      "url": "https://agentsecurity.in",
+      "softwareVersion": "0.1",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "license": "https://www.apache.org/licenses/LICENSE-2.0",
+      "author": {
+        "@type": "Organization",
+        "name": "AgentSecurity AI",
+        "url": "https://agentsecurity-ai.github.io"
+      }
+    }
+    </script>
     <style>
         :root {
             --bg: #0a0a0a;
@@ -355,16 +380,59 @@
                 font-size: 16px;
             }
         }
+
+        /* Quickstart Tabs */
+        .tabs {
+            margin-top: 24px;
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 2px;
+            margin-bottom: 0;
+            padding-left: 12px;
+        }
+
+        .tab-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-bottom: none;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+
+        .tab-btn.active {
+            background: #000;
+            color: var(--accent);
+            border-top: 2px solid var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .quickstart-container {
+            margin: 40px 0;
+        }
     </style>
+
 </head>
 
 <body>
     <nav>
         <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-            <a href="/" class="logo" style="display: flex; align-items: center; gap: 8px;"><img src="assets/logo.png" alt="AgentSecurity Logo" style="height: 32px; width: auto;" />AgentSecurity</a>
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 2px;"><img src="assets/logo.png" alt="Logo" style="height: 20px; width: auto;">AgentSecurity</a>
             <button class="menu-toggle" id="mobile-menu">☰</button>
             <div class="links nav-links" id="nav-links">
-                <a href="what-is-agentsecurity.html">What is it?</a>
+                <a href="about.html">What is it?</a>
                 <a href="specification.html">Specification</a>
                 <a href="adopt.html">Adopt</a>
                 <a href="integration.html">Integration</a>
@@ -389,31 +457,135 @@
             </div>
         </section>
 
-        <section class="quickstart">
-            <h2>Quickstart</h2>
-            <div class="code-block" style="position: relative;">
-                <button class="copy-btn"
-                    style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
-                <pre><code class="language-bash"># Install the CLI
-pip install agentsec
+        <section class="quickstart-container">
+            <h2
+                style="font-size: 16px; color: var(--text-muted); margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px;">
+                Quickstart</h2>
 
-# Initialize a security policy (interactive)
+            <div class="tabs">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="openTab(event, 'macos-linux')">macOS / Linux</button>
+                    <button class="tab-btn" onclick="openTab(event, 'windows')">Windows</button>
+                    <button class="tab-btn" onclick="openTab(event, 'docker')">Docker</button>
+                </div>
+
+                <div id="macos-linux" class="tab-content active">
+                    <div class="code-block">
+                        <button class="copy-btn"
+                            style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
+                        <pre><code class="language-bash"># Install from source
+python3 -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=packages/agentsec"
+
+# Initialize security policy
 agentsec init
 
-# Validate your policy
-agentsec validate .
-
-# Scan your codebase for violations
+# Scan codebase for policy violations
 agentsec check .
 
-# Get framework-specific recommendations
-agentsec suggest .</code></pre>
+# Generate token-efficient prompt snippet
+agentsec to-prompt --verbose --compact</code></pre>
+                    </div>
+                </div>
+
+                <div id="windows" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn"
+                            style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
+                        <pre><code class="language-powershell"># Install (PowerShell)
+python -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=packages/agentsec"
+
+# Initialize
+agentsec init
+
+# Scan
+agentsec check .
+
+# Prompt snippet
+agentsec to-prompt --verbose --compact</code></pre>
+                    </div>
+                </div>
+
+                <div id="docker" class="tab-content">
+                    <div class="code-block">
+                        <button class="copy-btn"
+                            style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
+                        <pre><code class="language-bash"># Run on-demand without install
+docker run -it --rm -v "$(pwd):/app" python:3.11-slim /bin/bash -c \
+ "pip install agentsec && agentsec scan /app"</code></pre>
+                    </div>
+                </div>
             </div>
         </section>
 
+        <script>
+            function openTab(evt, tabName) {
+                var i, tabcontent, tablinks;
+                tabcontent = document.getElementsByClassName("tab-content");
+                for (i = 0; i < tabcontent.length; i++) {
+                    tabcontent[i].style.display = "none";
+                }
+                tablinks = document.getElementsByClassName("tab-btn");
+                for (i = 0; i < tablinks.length; i++) {
+                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+                }
+                document.getElementById(tabName).style.display = "block";
+                evt.currentTarget.className += " active";
+            }
+        </script>
+
+        <h2 class="section-title">How It Works in Practice</h2>
+        <div class="features" style="grid-template-columns: 1fr; gap: 32px; margin-bottom: 60px;">
+            <div class="feature"
+                style="background: var(--surface); padding: 32px; border: 1px solid var(--border); border-radius: 12px;">
+                <h3 style="color: var(--accent); margin-bottom: 12px; font-size: 20px;">1. Define the Contract (The
+                    Rulebook)</h3>
+                <p style="margin-bottom: 20px; font-size: 16px;">You configure an <code>AGENTSECURITY.md</code> file
+                    declaring exactly what your AI agent is allowed to do. For example, explicitly permitting internal
+                    docs reading while strictly forbidding shell commands.</p>
+                <div class="code-block">
+                    <pre><code class="language-yaml">constraints:
+  hard_no:
+    - "Never execute arbitrary shell commands"
+tools:
+  - name: internal_docs_reader
+    permission: read_only
+    scope:
+      allowed_paths: ["/docs/*"]</code></pre>
+                </div>
+            </div>
+
+            <div class="feature"
+                style="background: var(--surface); padding: 32px; border: 1px solid var(--border); border-radius: 12px;">
+                <h3 style="color: var(--red); margin-bottom: 12px; font-size: 20px;">2. CI/CD Enforcement (The Shield)
+                </h3>
+                <p style="margin-bottom: 20px; font-size: 16px;">If a teammate opens a Pull Request that deletes a
+                    security constraint or adds an overly broad wildcard permission (<code>*</code>), the GitHub Action
+                    <strong>automatically fails the pull request</strong> and blocks the insecure code from merging.
+                </p>
+                <div class="code-block" style="border-left: 4px solid var(--red);">
+                    <pre><code class="language-bash" style="color: #ff8080;">FAIL [HIGH] Tool 'file_system' has wildcard scope ('*'). Narrow the scope to specific resources.
+RESULT: FAIL (high severity findings detected)</code></pre>
+                </div>
+            </div>
+
+            <div class="feature"
+                style="background: var(--surface); padding: 32px; border: 1px solid var(--border); border-radius: 12px;">
+                <h3 style="color: var(--blue); margin-bottom: 12px; font-size: 20px;">3. Runtime Protection (The Engine)
+                </h3>
+                <p style="margin-bottom: 20px; font-size: 16px;">Before your agent executes a tool at runtime, your
+                    python app strictly evaluates the <code>AGENTSECURITY.md</code> frontmatter block. If your LLM gets
+                    prompt-injected or goes rogue, the physical execution wrapper intercepts and denies the function
+                    call.</p>
+                <div class="code-block">
+                    <pre><code class="language-python">if tool.name not in policy['tools']:
+    raise SecurityPolicyViolation("Agent specifically attempted to use an unauthorized tool.")</code></pre>
+                </div>
+            </div>
+        </div>
+
         <h2 class="section-title">Navigate</h2>
         <div class="cards">
-            <a href="what-is-agentsecurity.html" class="card">
+            <a href="about.html" class="card">
                 <h3>What is AgentSecurity?</h3>
                 <p>Why pre-build security matters for autonomous agents. The threat landscape and how AGENTSECURITY.md
                     addresses it.</p>
@@ -488,14 +660,14 @@ agentsec suggest .</code></pre>
         <section class="badge-section">
             <h3>Add the Badge to Your Repo</h3>
             <p>Show that your agent has a declared security policy.</p>
-            <code>[![AgentSecurity](https://img.shields.io/badge/AgentSecurity-standard-green)](https://agentsecurity.dev)</code>
+            <code>[![AgentSecurity](https://img.shields.io/badge/AgentSecurity-standard-green)](https://agentsecurity.in)</code>
         </section>
     </div>
 
     <footer>
         <div class="container">
             <p>
-                AgentSecurity is an open standard.
+                AgentSecurity v0.1 &copy; 2026. This is an open standard.
                 Spec: <a href="https://creativecommons.org/licenses/by/4.0/">CC-BY-4.0</a> |
                 Tooling: <a href="https://www.apache.org/licenses/LICENSE-2.0">Apache-2.0</a> |
                 <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>

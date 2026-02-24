@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -235,6 +236,8 @@ def compute_policy_hash(root: Path) -> str:
 def verify_policy_integrity(root: Path, expected_hash: str) -> bool:
     """Verify AGENTSECURITY.md has not been modified since last check.
 
+    Uses timing-safe comparison to prevent hash oracle side-channel attacks.
+
     Args:
         root: Project root directory.
         expected_hash: Previously computed hash.
@@ -245,7 +248,7 @@ def verify_policy_integrity(root: Path, expected_hash: str) -> bool:
     current = compute_policy_hash(root)
     if not current or not expected_hash:
         return False
-    return current == expected_hash
+    return hmac.compare_digest(current, expected_hash)
 
 
 # ─── Recommendations Engine ──────────────────────────────────────────────
@@ -465,7 +468,10 @@ def generate_enforcement_guides(ctx: FrameworkContext, tier: str) -> list[str]:
 # ─── Private Helpers ──────────────────────────────────────────────────────
 
 def _iter_scannable(root: Path, extensions: set[str]):
-    """Iterate files with given extensions, skipping common noise dirs."""
+    """Iterate files with given extensions, skipping common noise dirs.
+
+    Skips symlinks to prevent infinite recursion (symlink loop DoS).
+    """
     skip_dirs = {
         "node_modules", ".git", "__pycache__", ".venv", "venv",
         "dist", "build", ".next", ".tox",
@@ -474,6 +480,9 @@ def _iter_scannable(root: Path, extensions: set[str]):
         return
     for item in root.rglob("*"):
         if item.is_dir():
+            continue
+        # Skip symlinks to prevent infinite recursion
+        if item.is_symlink():
             continue
         if any(skip in item.parts for skip in skip_dirs):
             continue

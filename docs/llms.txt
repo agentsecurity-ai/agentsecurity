@@ -1,0 +1,31 @@
+# AgentSecurity
+
+The open-source security standard for autonomous AI agents. AgentSecurity uses a declarative `AGENTSECURITY.md` file to define tool permissions, human-in-the-loop requirements, and runtime guardrails.
+
+## Core Features
+
+- **Tiered Security**: 4 layers of security (Basic, Standard, Strict, Regulated).
+- **Tool Allowlisting**: Explicitly declare which tools an agent is authorized to use.
+- **Human-in-the-Loop**: Prevent destructive operations without explicit approval.
+- **Runtime Sandboxing**: Requirements for Docker/Wasm isolation.
+- **Validator CLI**: Python tool to check codebases against policies.
+
+## Key Resources
+
+- [Specification](https://agentsecurity.in/specification.html): The formal spec for the standard.
+- [Adopt Guide](https://agentsecurity.in/adopt.html): How to implement AgentSecurity in your project.
+- [GitHub Repository](https://github.com/agentsecurity-ai/agentsecurity): Source code for the validator CLI and spec.
+- [Integration](https://agentsecurity.in/integration.html): Framework-specific guides (LangChain, CrewAI, etc.).
+
+## Quickstart
+
+```bash
+# Install the CLI
+pip install agentsec
+
+# Initialize project
+agentsec init
+
+# Validate policy
+agentsec check .
+```

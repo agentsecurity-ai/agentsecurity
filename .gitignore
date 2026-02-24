@@ -37,3 +37,6 @@ Thumbs.db
 # Reports
 agentsec-report.json
 agentsec-report.html
+
+# Local Assets
+/assets/

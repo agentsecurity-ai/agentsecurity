@@ -244,3 +244,71 @@ class TestCheckFrameworkContext:
             _setup_project(tmpdir)
             result = runner.invoke(main, ["check", tmpdir])
             assert "Recommendations:" in result.output
+
+
+# ─── Red Team Security Fixes ─────────────────────────────────────────────
+
+
+class TestXMLEscapeSecurity:
+    """Red team fix: _xml_escape must handle newlines to prevent XML injection."""
+
+    def test_xml_escape_newlines(self):
+        from agentsec.cli import _xml_escape
+        result = _xml_escape("line1\nline2")
+        assert "\n" not in result
+        assert "&#10;" in result
+
+    def test_xml_escape_carriage_return(self):
+        from agentsec.cli import _xml_escape
+        result = _xml_escape("line1\rline2")
+        assert "\r" not in result
+        assert "&#13;" in result
+
+    def test_xml_escape_special_chars(self):
+        from agentsec.cli import _xml_escape
+        result = _xml_escape('<script>alert("xss")</script>')
+        assert "<" not in result
+        assert ">" not in result
+        assert "&lt;" in result
+        assert "&gt;" in result
+
+
+class TestPathTraversalProtection:
+    """Red team fix: init --output must not write outside CWD."""
+
+    def test_init_rejects_absolute_path_outside_cwd(self):
+        runner = CliRunner()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = runner.invoke(
+                main,
+                ["init", "--tier", "basic", "--name", "test", "-o", "/tmp/evil/AGENTSECURITY.md"],
+            )
+            # Should fail unless /tmp/evil is under CWD
+            assert result.exit_code == 1 or "Error" in (result.output or "")
+
+    def test_lock_rejects_path_outside_project(self):
+        runner = CliRunner()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            _setup_project(tmpdir)
+            result = runner.invoke(
+                main,
+                ["lock", tmpdir, "-o", "/tmp/evil.lock"],
+            )
+            assert result.exit_code == 1
+            assert "Error" in result.output
+
+
+class TestTimingSafeComparison:
+    """Red team fix: verify must use timing-safe comparison."""
+
+    def test_verify_uses_hmac_compare(self):
+        """Verify command should use hmac.compare_digest (tested via correct behavior)."""
+        runner = CliRunner()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            _setup_project(tmpdir)
+            lock_path = str(Path(tmpdir) / ".agentsecurity.lock")
+            runner.invoke(main, ["lock", tmpdir, "-o", lock_path])
+            # Verify should still work correctly with timing-safe comparison
+            result = runner.invoke(main, ["verify", tmpdir, "--lock", lock_path])
+            assert result.exit_code == 0
+            assert "PASS" in result.output

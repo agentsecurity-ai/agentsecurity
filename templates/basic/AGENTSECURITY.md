@@ -5,7 +5,7 @@
 # Minimal security policy for hobby projects, prototypes, and internal tools.
 # Copy this file to your project root and customize the values below.
 #
-# Docs: https://agentsecurity.dev/specification
+# Docs: https://agentsecurity.in/specification
 # =============================================================================
 
 name: my-agent                    # Replace with your agent name (lowercase, hyphens ok)

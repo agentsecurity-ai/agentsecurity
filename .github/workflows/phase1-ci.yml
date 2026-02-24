@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
 
       - name: Verify required Phase 1 files
         run: |
@@ -27,17 +27,17 @@ jobs:
             "templates/standard/AGENTSECURITY.md"
             "templates/strict/AGENTSECURITY.md"
             "templates/regulated/AGENTSECURITY.md"
-            "examples/bad-agent/AGENTSECURITY.md"
+            "examples/vulnerable-agent/AGENTSECURITY.md"
             "examples/claude-code-project/AGENTSECURITY.md"
             "examples/financial-processor/AGENTSECURITY.md"
             "examples/gemini-workflow/AGENTSECURITY.md"
             "examples/langchain-agent/AGENTSECURITY.md"
             "examples/openai-assistant/AGENTSECURITY.md"
-            "site/index.html"
-            "site/what-is-agentsecurity.html"
-            "site/specification.html"
-            "site/adopt.html"
-            "site/llms.txt"
+            "docs/index.html"
+            "docs/about.html"
+            "docs/specification.html"
+            "docs/adopt.html"
+            "docs/llms.txt"
           )
 
           missing=0
@@ -65,33 +65,45 @@ jobs:
 
       - name: Basic site HTML sanity checks
         run: |
-          set -euo pipefail
-
-          for f in site/*.html; do
-            grep -q "<!DOCTYPE html>" "$f" || { echo "Missing DOCTYPE in $f"; exit 1; }
-            grep -qi "<title>" "$f" || { echo "Missing <title> in $f"; exit 1; }
-          done
+          python3 -c "
+          import glob, sys, re
+          failed = False
+          for f in sorted(glob.glob('docs/*.html')):
+              with open(f, 'r') as file:
+                  content = file.read()
+              if '<!DOCTYPE html>' not in content and '<!doctype html>' not in content:
+                  print(f'ERROR: Missing <!DOCTYPE html> in {f}')
+                  failed = True
+              if not re.search(r'<title>.*</title>', content, re.IGNORECASE | re.DOTALL):
+                  print(f'ERROR: Missing <title> in {f}')
+                  failed = True
+              else:
+                  print(f'PASSED: {f}')
+          if failed:
+              sys.exit(1)
+          print('All HTML sanity checks passed.')
+          "
 
   phase1-links:
     name: phase1-links
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@eef61447b9ff4aafe5dcd4e0bbf5d482be7e7871 # v4.2.1
 
       - name: Validate internal site links
         run: |
           set -euo pipefail
 
           failed=0
-          for f in site/*.html; do
+          for f in docs/*.html; do
             while IFS= read -r link; do
               # Skip external/anchors/mailto/absolute paths.
               if [[ "$link" =~ ^https?:// ]] || [[ "$link" =~ ^# ]] || [[ "$link" =~ ^mailto: ]] || [[ "$link" =~ ^/ ]]; then
                 continue
               fi
 
-              target="site/$link"
+              target="docs/$link"
               if [[ ! -e "$target" ]]; then
                 echo "Broken internal link in $f -> $link"
                 failed=1

@@ -3,8 +3,10 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Best Practices | AgentSecurity</title>
+    <title>AI Agent Security Best Practices | Guardrails</title>
     <meta name="description"
         content="Security best practices for autonomous agents using the AgentSecurity specification.">
     <meta property="og:title" content="Best Practices | AgentSecurity">
@@ -156,20 +158,22 @@
             background: rgba(255, 255, 255, 0.2);
         }
     </style>
+    
 </head>
 
 <body>
     <div class="container">
         <nav>
-            <a href="/" class="logo" style="display: flex; align-items: center; gap: 8px;"><img src="assets/logo.png" alt="AgentSecurity Logo" style="height: 32px; width: auto;" />AgentSecurity</a>
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 2px;"><img src="assets/logo.png" alt="Logo" style="height: 20px; width: auto;">AgentSecurity</a>
             <button class="menu-toggle" id="mobile-menu">☰</button>
             <div class="nav-links" id="nav-links">
-                <a href="what-is-agentsecurity.html">What is it?</a>
+                <a href="about.html">What is it?</a>
                 <a href="specification.html">Specification</a>
                 <a href="adopt.html">Adopt</a>
                 <a href="integration.html">Integration</a>
                 <a href="best-practices.html">Best Practices</a>
                 <a href="faq.html">FAQ</a>
+                <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>
             </div>
         </nav>
 
@@ -248,9 +252,33 @@ neutralino/</code></pre>
         </div>
     </div>
 
+    <footer style="border-top: 1px solid #262626; padding: 32px 0; text-align: center; color: #a3a3a3; font-size: 13px;">
+        <div class="container">
+            <p>
+                <a href="/" style="color: #22c55e; text-decoration: none;">Home</a> |
+                <a href="specification.html" style="color: #22c55e; text-decoration: none;">Specification</a> |
+                <a href="adopt.html" style="color: #22c55e; text-decoration: none;">Adopt</a> |
+                <a href="https://github.com/agentsecurity-ai/agentsecurity" style="color: #22c55e; text-decoration: none;">GitHub</a>
+            </p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
     <script>
         document.getElementById('mobile-menu').addEventListener('click', function () {
             document.getElementById('nav-links').classList.toggle('active');
+        });
+
+        // Copy buttons
+        document.querySelectorAll('.copy-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const code = btn.nextElementSibling.innerText;
+                navigator.clipboard.writeText(code);
+                btn.innerText = 'Copied!';
+                setTimeout(() => btn.innerText = 'Copy', 2000);
+            });
         });
     </script>
 </body>

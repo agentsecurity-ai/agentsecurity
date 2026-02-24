@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://agentsecurity.dev/schema/v0.1/agentsecurity.schema.json",
+  "$id": "https://agentsecurity.in/schema/v0.1/agentsecurity.schema.json",
   "title": "AGENTSECURITY.md Frontmatter Schema",
   "description": "JSON Schema for validating the YAML frontmatter of AGENTSECURITY.md files. Version 0.1 of the AgentSecurity specification.",
   "type": "object",

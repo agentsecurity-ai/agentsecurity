@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hmac
 import json
 import sys
 from pathlib import Path
@@ -24,7 +25,7 @@ def main():
     Validate AGENTSECURITY.md policies, scan codebases for violations,
     and generate security scorecards.
 
-    Docs: https://agentsecurity.dev
+    Docs: https://agentsecurity.in
     """
     pass
 
@@ -217,7 +218,12 @@ def init_cmd(tier: str | None, name: str | None, output: str):
     if name is None:
         name = click.prompt("Agent name", default="my-agent")
 
-    output_path = Path(output)
+    output_path = Path(output).resolve()
+    cwd = Path.cwd().resolve()
+    if not str(output_path).startswith(str(cwd)):
+        click.echo("Error: Output path must be within the current directory.", err=True)
+        sys.exit(1)
+
     if output_path.exists():
         if not click.confirm(f"{output} already exists. Overwrite?"):
             click.echo("Aborted.")
@@ -271,7 +277,9 @@ def read_properties(path: str):
 
 @main.command(name="to-prompt")
 @click.argument("path", default=".", type=click.Path(exists=True))
-def to_prompt(path: str):
+@click.option("--verbose", "-v", is_flag=True, help="Include full policy details (Layer 2).")
+@click.option("--compact", "-c", is_flag=True, help="Single-line output (token efficient).")
+def to_prompt(path: str, verbose: bool, compact: bool):
     """Generate system prompt XML snippet for agent integration.
 
     Output can be injected into an agent's system prompt to provide
@@ -283,15 +291,76 @@ def to_prompt(path: str):
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
 
-    xml = (
-        "<agent_security_policy>\n"
-        f"  <name>{_xml_escape(policy.name)}</name>\n"
-        f"  <tier>{_xml_escape(policy.security_tier)}</tier>\n"
-        f"  <enforcement>{_xml_escape(policy.enforcement)}</enforcement>\n"
-        f"  <description>{_xml_escape(policy.description)}</description>\n"
-        f"  <location>{_xml_escape(policy.file_path)}</location>\n"
-        "</agent_security_policy>"
-    )
+    if not compact:
+        xml = (
+            "<agent_security_policy>\n"
+            f"  <name>{_xml_escape(policy.name)}</name>\n"
+            f"  <tier>{_xml_escape(policy.security_tier)}</tier>\n"
+            f"  <enforcement>{_xml_escape(policy.enforcement)}</enforcement>\n"
+            f"  <description>{_xml_escape(policy.description)}</description>\n"
+            f"  <location>{_xml_escape(policy.file_path)}</location>\n"
+        )
+    else:
+        xml = (
+            f"<agent_security_policy name='{_xml_escape(policy.name)}' "
+            f"tier='{_xml_escape(policy.security_tier)}' "
+            f"enforcement='{_xml_escape(policy.enforcement)}' "
+            f"location='{_xml_escape(policy.file_path)}'>"
+        )
+        if not verbose:
+            xml += "</agent_security_policy>"
+            click.echo(xml)
+            return
+
+    if verbose:
+        if policy.constraints:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<constraints>{line_end}"
+            for key, val in policy.constraints.items():
+                xml += f"{indent}  <{key}>{_xml_escape(str(val))}</{key}>{line_end}"
+            xml += f"{indent}</constraints>{line_end}"
+        
+        if policy.tools:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<declared_tools>{line_end}"
+            for tool in policy.tools:
+                xml += f"{indent}  <tool>{line_end}"
+                for k, v in tool.items():
+                    xml += f"{indent}    <{k}>{_xml_escape(str(v))}</{k}>{line_end}"
+                xml += f"{indent}  </tool>{line_end}"
+            xml += f"{indent}</declared_tools>{line_end}"
+
+        if policy.runtime:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<runtime>{line_end}"
+            for k, v in policy.runtime.items():
+                xml += f"{indent}  <{k}>{_xml_escape(str(v))}</{k}>{line_end}"
+            xml += f"{indent}</runtime>{line_end}"
+
+        if policy.human_in_the_loop:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<human_in_the_loop>{line_end}"
+            for k, v in policy.human_in_the_loop.items():
+                xml += f"{indent}  <{k}>{_xml_escape(str(v))}</{k}>{line_end}"
+            xml += f"{indent}</human_in_the_loop>{line_end}"
+
+        if policy.audit:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<audit>{line_end}"
+            for k, v in policy.audit.items():
+                xml += f"{indent}  <{k}>{_xml_escape(str(v))}</{k}>{line_end}"
+            xml += f"{indent}</audit>{line_end}"
+
+    if not compact:
+        xml += "</agent_security_policy>"
+    else:
+        xml += "</agent_security_policy>"
+
     click.echo(xml)
 
 
@@ -386,9 +455,15 @@ def lock_cmd(path: str, output: str):
     """
     from .advisor import compute_policy_hash
 
-    root = Path(path)
+    root = Path(path).resolve()
     if root.is_file():
         root = root.parent
+
+    # Confine lock file output to within the project directory
+    lock_output = Path(output).resolve()
+    if not str(lock_output).startswith(str(root)):
+        click.echo("Error: Lock file path must be within the project directory.", err=True)
+        sys.exit(1)
 
     policy_hash = compute_policy_hash(root)
     if not policy_hash:
@@ -404,7 +479,7 @@ def lock_cmd(path: str, output: str):
         f"sha256: {policy_hash}\n"
     )
 
-    Path(output).write_text(lock_content, encoding="utf-8")
+    lock_output.write_text(lock_content, encoding="utf-8")
     click.echo(f"Lock file written to {output}")
     click.echo(f"  SHA-256: {policy_hash}")
     click.echo(f"  Add {output} to version control.")
@@ -434,7 +509,12 @@ def verify_cmd(path: str, lock_file: str):
 
     lock_path = Path(lock_file)
     expected_hash = ""
-    for line in lock_path.read_text(encoding="utf-8").splitlines():
+    try:
+        lock_content = lock_path.read_text(encoding="utf-8")
+    except (PermissionError, OSError) as e:
+        click.echo(f"FAIL: Cannot read lock file: {e}", err=True)
+        sys.exit(1)
+    for line in lock_content.splitlines():
         line = line.strip()
         if line.startswith("sha256:"):
             expected_hash = line.split(":", 1)[1].strip()
@@ -444,7 +524,8 @@ def verify_cmd(path: str, lock_file: str):
         click.echo(f"FAIL: No sha256 hash found in {lock_file}.", err=True)
         sys.exit(1)
 
-    if current_hash == expected_hash:
+    # Use timing-safe comparison to prevent hash oracle side-channel attacks
+    if hmac.compare_digest(current_hash, expected_hash):
         click.echo(f"PASS: AGENTSECURITY.md integrity verified.")
         click.echo(f"  Hash: {current_hash[:16]}...")
     else:
@@ -467,13 +548,19 @@ def _should_fail(result, fail_on: str) -> bool:
 
 
 def _xml_escape(text: str) -> str:
-    """Escape XML special characters."""
+    """Escape XML special characters and control characters.
+
+    Prevents XML injection via newlines, carriage returns, and special chars
+    that could break the XML structure of to-prompt output.
+    """
     return (
         text.replace("&", "&amp;")
         .replace("<", "&lt;")
         .replace(">", "&gt;")
         .replace('"', "&quot;")
         .replace("'", "&apos;")
+        .replace("\n", "&#10;")
+        .replace("\r", "&#13;")
     )
 
 

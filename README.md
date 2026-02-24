@@ -86,9 +86,9 @@ agentsecurity/
 │   ├── langchain-agent/
 │   ├── claude-code-project/
 │   ├── financial-processor/
-│   └── bad-agent/           # Deliberately insecure (for testing)
-├── tools/agentsec/          # CLI validator (Python)
-├── site/                    # Documentation website
+│   └── vulnerable-agent/    # Deliberately insecure (for testing)
+├── packages/agentsec/      # CLI validator (Python)
+├── docs/                    # Documentation website
 └── references/              # OWASP, NIST, ISO reference material
 ```
 

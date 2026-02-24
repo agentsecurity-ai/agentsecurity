@@ -26,22 +26,24 @@ runs:
   using: 'composite'
   steps:
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
       with:
         python-version: '>=3.9'
 
     - name: Install agentsec CLI
       shell: bash
       run: |
-        pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=tools/agentsec"
+        pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=packages/agentsec"
         # Or from PyPI when published: pip install agentsec
 
     - name: Run Validation
       id: validate
       shell: bash
       run: |
-        echo "Running agentsec validate on ${{ inputs.path }}"
-        agentsec validate "${{ inputs.path }}" --format json --output report.json
+        echo "Running agentsec validate on $INPUT_PATH"
+        agentsec validate "$INPUT_PATH" --format json --output report.json
+      env:
+        INPUT_PATH: ${{ inputs.path }}
         
         SCORE=$(jq -r '.score' report.json)
         echo "score=$SCORE" >> $GITHUB_OUTPUT

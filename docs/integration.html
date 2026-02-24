@@ -2,6 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="robots" content="index, follow">
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Integration Guide | AgentSecurity</title>
     <meta name="description" content="Model-agnostic agent integration guide for AgentSecurity. Works with any LLM, any framework.">
@@ -45,19 +47,21 @@
         .copy-btn { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px; }
         .copy-btn:hover { background: rgba(255,255,255,0.2); }
     </style>
+    
 </head>
 <body>
     <div class="container">
         <nav>
-            <a href="/" class="logo" style="display: flex; align-items: center; gap: 8px;"><img src="assets/logo.png" alt="AgentSecurity Logo" style="height: 32px; width: auto;" />AgentSecurity</a>
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 2px;"><img src="assets/logo.png" alt="Logo" style="height: 20px; width: auto;">AgentSecurity</a>
             <button class="menu-toggle" id="mobile-menu">☰</button>
             <div class="nav-links" id="nav-links">
-                <a href="what-is-agentsecurity.html">What is it?</a>
+                <a href="about.html">What is it?</a>
                 <a href="specification.html">Specification</a>
                 <a href="adopt.html">Adopt</a>
                 <a href="integration.html">Integration</a>
                 <a href="best-practices.html">Best Practices</a>
                 <a href="faq.html">FAQ</a>
+                <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>
             </div>
         </nav>
         
@@ -198,6 +202,17 @@ $ agentsec check . --format json
 
         </div>
     </div>
+
+    <footer style="border-top: 1px solid #262626; padding: 32px 0; text-align: center; color: #a3a3a3; font-size: 13px;">
+        <div class="container">
+            <p>
+                <a href="/" style="color: #22c55e; text-decoration: none;">Home</a> |
+                <a href="specification.html" style="color: #22c55e; text-decoration: none;">Specification</a> |
+                <a href="adopt.html" style="color: #22c55e; text-decoration: none;">Adopt</a> |
+                <a href="https://github.com/agentsecurity-ai/agentsecurity" style="color: #22c55e; text-decoration: none;">GitHub</a>
+            </p>
+        </div>
+    </footer>
 
     <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
