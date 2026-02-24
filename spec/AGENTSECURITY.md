@@ -1,3 +1,4 @@
+---
 # AGENTSECURITY.md Specification v0.1
 
 > The open standard for defining security boundaries of autonomous AI agents.
