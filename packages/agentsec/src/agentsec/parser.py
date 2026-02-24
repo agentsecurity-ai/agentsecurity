@@ -22,6 +22,7 @@ class AgentSecurityPolicy:
     # Optional frontmatter fields
     governance: list[str] = field(default_factory=list)
     enforcement: str = "warn"
+    extends: list[str] = field(default_factory=list)
     metadata: dict[str, str] = field(default_factory=dict)
 
     # Parsed body sections (raw text)
@@ -140,20 +141,30 @@ def _extract_yaml_blocks(text: str) -> list[dict]:
     return blocks
 
 
-def parse_policy(path: str | Path) -> AgentSecurityPolicy:
+def parse_policy(path: str | Path, seen_paths: set[str] | None = None) -> AgentSecurityPolicy:
     """Parse an AGENTSECURITY.md file into a structured policy object.
 
     Args:
         path: Path to the AGENTSECURITY.md file or directory containing it.
+        seen_paths: Internal set to track recursive calls for cycle detection.
 
     Returns:
         Parsed AgentSecurityPolicy object.
 
     Raises:
         FileNotFoundError: If the file doesn't exist.
-        ParseError: If the file cannot be parsed.
+        ParseError: If the file cannot be parsed or has cyclic dependencies.
     """
+    if seen_paths is None:
+        seen_paths = set()
+
     file_path = find_policy_file(path)
+    abs_path = str(file_path.resolve())
+
+    if abs_path in seen_paths:
+        raise ParseError(f"Cyclic dependency detected in policy extension: {abs_path}")
+    
+    seen_paths.add(abs_path)
     content = file_path.read_text(encoding="utf-8")
 
     # Strip comment lines from frontmatter area (lines starting with #
@@ -167,11 +178,24 @@ def parse_policy(path: str | Path) -> AgentSecurityPolicy:
         version=str(frontmatter.get("version", "")),
         governance=frontmatter.get("governance", []) or [],
         enforcement=str(frontmatter.get("enforcement", "warn")),
+        extends=frontmatter.get("extends", []) or [],
         metadata=frontmatter.get("metadata", {}) or {},
         body=body,
         file_path=str(file_path),
         raw_frontmatter=frontmatter,
     )
+
+    # Handle extensions (recursion)
+    if policy.extends:
+        base_dir = file_path.parent
+        for ext_path in policy.extends:
+            full_path = base_dir / ext_path
+            if not full_path.exists():
+                raise ParseError(f"Extended policy not found: {ext_path}")
+            
+            base_policy = parse_policy(full_path, seen_paths=seen_paths.copy())
+            # Merge base policy into current
+            _merge_policies(policy, base_policy)
 
     # Parse body sections
     sections = _extract_sections(body)
@@ -217,3 +241,46 @@ def parse_policy(path: str | Path) -> AgentSecurityPolicy:
                 policy.audit = block["audit"]
 
     return policy
+
+
+def _merge_policies(target: AgentSecurityPolicy, base: AgentSecurityPolicy):
+    """Merge base policy into target policy (target takes precedence)."""
+    # Merge constraints
+    if base.constraints:
+        if not target.constraints:
+            target.constraints = base.constraints.copy()
+        else:
+            # Merge lists inside constraints (like hard_no)
+            for key, val in base.constraints.items():
+                if key not in target.constraints:
+                    target.constraints[key] = val
+                elif isinstance(val, list) and isinstance(target.constraints[key], list):
+                    # Combine lists, avoiding duplicates
+                    for item in val:
+                        if item not in target.constraints[key]:
+                            target.constraints[key].append(item)
+
+    # Merge tools (by name)
+    if base.tools:
+        target_tool_names = target.declared_tool_names
+        for tool in base.tools:
+            if tool.get("name") not in target_tool_names:
+                target.tools.append(tool)
+
+    # Merge runtime
+    if base.runtime:
+        for key, val in base.runtime.items():
+            if key not in target.runtime:
+                target.runtime[key] = val
+
+    # Merge HITL
+    if base.human_in_the_loop:
+        for key, val in base.human_in_the_loop.items():
+            if key not in target.human_in_the_loop:
+                target.human_in_the_loop[key] = val
+
+    # Merge Audit
+    if base.audit:
+        for key, val in base.audit.items():
+            if key not in target.audit:
+                target.audit[key] = val

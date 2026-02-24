@@ -277,7 +277,9 @@ def read_properties(path: str):
 
 @main.command(name="to-prompt")
 @click.argument("path", default=".", type=click.Path(exists=True))
-def to_prompt(path: str):
+@click.option("--verbose", "-v", is_flag=True, help="Include full policy details (Layer 2).")
+@click.option("--compact", "-c", is_flag=True, help="Single-line output (token efficient).")
+def to_prompt(path: str, verbose: bool, compact: bool):
     """Generate system prompt XML snippet for agent integration.
 
     Output can be injected into an agent's system prompt to provide
@@ -289,15 +291,76 @@ def to_prompt(path: str):
         click.echo(f"Error: {e}", err=True)
         sys.exit(1)
 
-    xml = (
-        "<agent_security_policy>\n"
-        f"  <name>{_xml_escape(policy.name)}</name>\n"
-        f"  <tier>{_xml_escape(policy.security_tier)}</tier>\n"
-        f"  <enforcement>{_xml_escape(policy.enforcement)}</enforcement>\n"
-        f"  <description>{_xml_escape(policy.description)}</description>\n"
-        f"  <location>{_xml_escape(policy.file_path)}</location>\n"
-        "</agent_security_policy>"
-    )
+    if not compact:
+        xml = (
+            "<agent_security_policy>\n"
+            f"  <name>{_xml_escape(policy.name)}</name>\n"
+            f"  <tier>{_xml_escape(policy.security_tier)}</tier>\n"
+            f"  <enforcement>{_xml_escape(policy.enforcement)}</enforcement>\n"
+            f"  <description>{_xml_escape(policy.description)}</description>\n"
+            f"  <location>{_xml_escape(policy.file_path)}</location>\n"
+        )
+    else:
+        xml = (
+            f"<agent_security_policy name='{_xml_escape(policy.name)}' "
+            f"tier='{_xml_escape(policy.security_tier)}' "
+            f"enforcement='{_xml_escape(policy.enforcement)}' "
+            f"location='{_xml_escape(policy.file_path)}'>"
+        )
+        if not verbose:
+            xml += "</agent_security_policy>"
+            click.echo(xml)
+            return
+
+    if verbose:
+        if policy.constraints:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<constraints>{line_end}"
+            for key, val in policy.constraints.items():
+                xml += f"{indent}  <{key}>{_xml_escape(str(val))}</{key}>{line_end}"
+            xml += f"{indent}</constraints>{line_end}"
+        
+        if policy.tools:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<declared_tools>{line_end}"
+            for tool in policy.tools:
+                xml += f"{indent}  <tool>{line_end}"
+                for k, v in tool.items():
+                    xml += f"{indent}    <{k}>{_xml_escape(str(v))}</{k}>{line_end}"
+                xml += f"{indent}  </tool>{line_end}"
+            xml += f"{indent}</declared_tools>{line_end}"
+
+        if policy.runtime:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<runtime>{line_end}"
+            for k, v in policy.runtime.items():
+                xml += f"{indent}  <{k}>{_xml_escape(str(v))}</{k}>{line_end}"
+            xml += f"{indent}</runtime>{line_end}"
+
+        if policy.human_in_the_loop:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<human_in_the_loop>{line_end}"
+            for k, v in policy.human_in_the_loop.items():
+                xml += f"{indent}  <{k}>{_xml_escape(str(v))}</{k}>{line_end}"
+            xml += f"{indent}</human_in_the_loop>{line_end}"
+
+        if policy.audit:
+            indent = "  " if not compact else ""
+            line_end = "\n" if not compact else ""
+            xml += f"{indent}<audit>{line_end}"
+            for k, v in policy.audit.items():
+                xml += f"{indent}  <{k}>{_xml_escape(str(v))}</{k}>{line_end}"
+            xml += f"{indent}</audit>{line_end}"
+
+    if not compact:
+        xml += "</agent_security_policy>"
+    else:
+        xml += "</agent_security_policy>"
+
     click.echo(xml)
 
 

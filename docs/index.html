@@ -398,7 +398,7 @@
             margin: 40px 0;
         }
     </style>
-    
+
 </head>
 
 <body>
@@ -454,8 +454,11 @@ python3 -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.gi
 # Initialize security policy
 agentsec init
 
-# Scan codebase
-agentsec scan .</code></pre>
+# Scan codebase for policy violations
+agentsec check .
+
+# Generate token-efficient prompt snippet
+agentsec to-prompt --verbose --compact</code></pre>
                     </div>
                 </div>
 
@@ -470,7 +473,10 @@ python -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git
 agentsec init
 
 # Scan
-agentsec scan .</code></pre>
+agentsec check .
+
+# Prompt snippet
+agentsec to-prompt --verbose --compact</code></pre>
                     </div>
                 </div>
 
