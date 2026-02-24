@@ -3,36 +3,43 @@
   <url>
     <loc>https://agentsecurity.in/</loc>
     <changefreq>daily</changefreq>
+    <lastmod>2026-02-24</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://agentsecurity.in/about.html</loc>
     <changefreq>weekly</changefreq>
+    <lastmod>2026-02-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://agentsecurity.in/specification.html</loc>
     <changefreq>weekly</changefreq>
+    <lastmod>2026-02-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://agentsecurity.in/adopt.html</loc>
     <changefreq>weekly</changefreq>
+    <lastmod>2026-02-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://agentsecurity.in/integration.html</loc>
     <changefreq>weekly</changefreq>
+    <lastmod>2026-02-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://agentsecurity.in/best-practices.html</loc>
     <changefreq>weekly</changefreq>
+    <lastmod>2026-02-24</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://agentsecurity.in/faq.html</loc>
     <changefreq>monthly</changefreq>
+    <lastmod>2026-02-24</lastmod>
     <priority>0.5</priority>
   </url>
 </urlset>

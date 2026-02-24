@@ -1,43 +1,31 @@
-# AgentSecurity Documentation Index
-# Machine-readable documentation index for AI agents
-# URL: https://agentsecurity.in/llms.txt
+# AgentSecurity
 
-## Overview
-> An open standard for defining security boundaries of autonomous AI agents.
-> AGENTSECURITY.md is a declarative security policy file that lives in agent project roots.
+The open-source security standard for autonomous AI agents. AgentSecurity uses a declarative `AGENTSECURITY.md` file to define tool permissions, human-in-the-loop requirements, and runtime guardrails.
 
-## Pages
-- [Home](https://agentsecurity.in/) — Overview, quickstart, tier selection
-- [What is AgentSecurity?](https://agentsecurity.in/about.html) — Problem, solution, progressive disclosure, limitations
-- [Specification](https://agentsecurity.in/specification.html) — Full format reference, field definitions, tier table, validation rules
-- [Adopt](https://agentsecurity.in/adopt.html) — Installation, CI/CD, framework integration, CLI reference, templates
-- [Integration](https://agentsecurity.in/integration.html) — Model-agnostic integration, framework detection, tamper protection
-- [Best Practices](https://agentsecurity.in/best-practices.html) — Least privilege, tamper protection, .agentsecignore, framework hardening
-- [FAQ](https://agentsecurity.in/faq.html) — Common questions about AgentSecurity
+## Core Features
 
-## Key Concepts
-- Security tiers: basic, standard, strict, regulated
-- YAML frontmatter + Markdown body format
-- Progressive disclosure: metadata at startup, full policy on activation
-- Framework auto-detection: LangChain, CrewAI, AutoGen, OpenAI SDK, Anthropic SDK, Vercel AI SDK, and 30+ more
-- Agent platform detection: Claude Code, Cursor, GitHub Copilot
-- Tamper protection: SHA-256 lock/verify workflow
-- Compliance mapping: OWASP LLM Top 10, NIST AI RMF, ISO 42001, EU AI Act
+- **Tiered Security**: 4 layers of security (Basic, Standard, Strict, Regulated).
+- **Tool Allowlisting**: Explicitly declare which tools an agent is authorized to use.
+- **Human-in-the-Loop**: Prevent destructive operations without explicit approval.
+- **Runtime Sandboxing**: Requirements for Docker/Wasm isolation.
+- **Validator CLI**: Python tool to check codebases against policies.
 
-## CLI Commands
-- agentsec init — Initialize policy from template (interactive tier selector)
-- agentsec validate — Check policy against JSON schema
-- agentsec check — Scan codebase for violations (includes framework detection)
-- agentsec suggest — Detect frameworks and generate tailored recommendations
-- agentsec lock — Generate tamper-protection lock file (SHA-256)
-- agentsec verify — Verify policy integrity against lock file
-- agentsec report — Generate security scorecard (text/json/badge)
-- agentsec read-properties — Extract policy metadata as JSON
-- agentsec to-prompt — Generate system prompt XML snippet
+## Key Resources
 
-## Resources
-- [GitHub Repository](https://github.com/agentsecurity-ai/agentsecurity)
-- [JSON Schema](https://github.com/agentsecurity-ai/agentsecurity/blob/main/spec/agentsecurity.schema.json)
-- [Templates](https://github.com/agentsecurity-ai/agentsecurity/tree/main/templates)
-- [Examples](https://github.com/agentsecurity-ai/agentsecurity/tree/main/examples)
-- [PyPI Package](https://pypi.org/project/agentsec/)
+- [Specification](https://agentsecurity.in/specification.html): The formal spec for the standard.
+- [Adopt Guide](https://agentsecurity.in/adopt.html): How to implement AgentSecurity in your project.
+- [GitHub Repository](https://github.com/agentsecurity-ai/agentsecurity): Source code for the validator CLI and spec.
+- [Integration](https://agentsecurity.in/integration.html): Framework-specific guides (LangChain, CrewAI, etc.).
+
+## Quickstart
+
+```bash
+# Install the CLI
+pip install agentsec
+
+# Initialize project
+agentsec init
+
+# Validate policy
+agentsec check .
+```
