@@ -11,17 +11,33 @@
 - [What is AgentSecurity?](https://agentsecurity.dev/what-is-agentsecurity.html) — Problem, solution, progressive disclosure, limitations
 - [Specification](https://agentsecurity.dev/specification.html) — Full format reference, field definitions, tier table, validation rules
 - [Adopt](https://agentsecurity.dev/adopt.html) — Installation, CI/CD, framework integration, CLI reference, templates
+- [Integration](https://agentsecurity.dev/integration.html) — Model-agnostic integration, framework detection, tamper protection
+- [Best Practices](https://agentsecurity.dev/best-practices.html) — Least privilege, tamper protection, .agentsecignore, framework hardening
+- [FAQ](https://agentsecurity.dev/faq.html) — Common questions about AgentSecurity
 
 ## Key Concepts
 - Security tiers: basic, standard, strict, regulated
 - YAML frontmatter + Markdown body format
 - Progressive disclosure: metadata at startup, full policy on activation
-- Validator CLI: agentsec validate, agentsec check, agentsec report
+- Framework auto-detection: LangChain, CrewAI, AutoGen, OpenAI SDK, Anthropic SDK, Vercel AI SDK, and 30+ more
+- Agent platform detection: Claude Code, Cursor, GitHub Copilot
+- Tamper protection: SHA-256 lock/verify workflow
 - Compliance mapping: OWASP LLM Top 10, NIST AI RMF, ISO 42001, EU AI Act
 
+## CLI Commands
+- agentsec init — Initialize policy from template (interactive tier selector)
+- agentsec validate — Check policy against JSON schema
+- agentsec check — Scan codebase for violations (includes framework detection)
+- agentsec suggest — Detect frameworks and generate tailored recommendations
+- agentsec lock — Generate tamper-protection lock file (SHA-256)
+- agentsec verify — Verify policy integrity against lock file
+- agentsec report — Generate security scorecard (text/json/badge)
+- agentsec read-properties — Extract policy metadata as JSON
+- agentsec to-prompt — Generate system prompt XML snippet
+
 ## Resources
-- [GitHub Repository](https://github.com/agentsecurity/agentsecurity)
-- [JSON Schema](https://github.com/agentsecurity/agentsecurity/blob/main/spec/agentsecurity.schema.json)
-- [Templates](https://github.com/agentsecurity/agentsecurity/tree/main/templates)
-- [Examples](https://github.com/agentsecurity/agentsecurity/tree/main/examples)
+- [GitHub Repository](https://github.com/agentsecurity-ai/agentsecurity)
+- [JSON Schema](https://github.com/agentsecurity-ai/agentsecurity/blob/main/spec/agentsecurity.schema.json)
+- [Templates](https://github.com/agentsecurity-ai/agentsecurity/tree/main/templates)
+- [Examples](https://github.com/agentsecurity-ai/agentsecurity/tree/main/examples)
 - [PyPI Package](https://pypi.org/project/agentsec/)

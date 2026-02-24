@@ -1,62 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adopt AgentSecurity — Integration Guide</title>
+    <meta name="description"
+        content="Quick start and integration guide for adopting AgentSecurity in your AI projects.">
+    <meta property="og:title" content="Adopt AgentSecurity | Integration Guide">
+    <meta property="og:description" content="Quick start and integration guide for adopting AgentSecurity.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
         :root {
-            --bg: #0a0a0a; --surface: #141414; --border: #262626;
-            --text: #e5e5e5; --text-muted: #a3a3a3; --accent: #22c55e;
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --border: #262626;
+            --text: #e5e5e5;
+            --text-muted: #a3a3a3;
+            --accent: #22c55e;
             --blue: #3b82f6;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
-            background: var(--bg); color: var(--text); line-height: 1.7;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
         }
-        .container { max-width: 750px; margin: 0 auto; padding: 0 24px; }
-        nav { border-bottom: 1px solid var(--border); padding: 16px 0; }
-        nav .inner { max-width: 900px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-        nav .logo { font-weight: 700; font-size: 18px; color: var(--accent); text-decoration: none; }
-        nav .links a { color: var(--text-muted); text-decoration: none; margin-left: 24px; font-size: 14px; }
-        .content { padding: 60px 0 80px; }
-        h1 { font-size: 32px; margin-bottom: 24px; }
-        h2 { font-size: 22px; margin: 40px 0 16px; color: var(--accent); }
-        h3 { font-size: 18px; margin: 24px 0 12px; }
-        p { margin-bottom: 16px; color: var(--text-muted); }
-        p strong { color: var(--text); }
-        ol, ul { margin: 0 0 16px 20px; color: var(--text-muted); }
-        li { margin-bottom: 8px; }
-        code { background: #1a1a1a; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        nav {
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+        }
+
+        nav .inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .logo {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 24px;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--surface);
+                padding: 20px;
+                border-bottom: 1px solid var(--border);
+                z-index: 100;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-links a {
+                margin: 10px 0;
+                font-size: 16px;
+                margin-left: 0;
+            }
+        }
+
+        .content {
+            padding: 60px 0 80px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-size: 22px;
+            margin: 40px 0 16px;
+            color: var(--accent);
+        }
+
+        h3 {
+            font-size: 18px;
+            margin: 24px 0 12px;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text-muted);
+        }
+
+        p strong {
+            color: var(--text);
+        }
+
+        ol,
+        ul {
+            margin: 0 0 16px 20px;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        code {
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
         pre {
-            background: #000; border: 1px solid var(--border); border-radius: 8px;
-            padding: 16px; overflow-x: auto; margin: 16px 0; font-size: 13px; line-height: 1.5;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+            font-size: 13px;
+            line-height: 1.5;
         }
+
         .step {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 12px; padding: 24px; margin: 16px 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 16px 0;
         }
-        .step h3 { margin-top: 0; }
+
+        .step h3 {
+            margin-top: 0;
+        }
+
         .step-number {
-            display: inline-block; background: var(--accent); color: #000;
-            width: 28px; height: 28px; border-radius: 50%;
-            text-align: center; line-height: 28px; font-weight: 700;
-            font-size: 14px; margin-right: 8px;
+            display: inline-block;
+            background: var(--accent);
+            color: #000;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 28px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-right: 8px;
         }
-        footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
-        footer a { color: var(--accent); text-decoration: none; }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
     </style>
 </head>
+
 <body>
     <nav>
         <div class="inner">
-            <a href="/" class="logo">AgentSecurity</a>
-            <div class="links">
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 8px;"><img src="assets/logo.png" alt="AgentSecurity Logo" style="height: 32px; width: auto;" />AgentSecurity</a>
+            <button class="menu-toggle" id="mobile-menu">☰</button>
+            <div class="nav-links" id="nav-links">
                 <a href="what-is-agentsecurity.html">What is it?</a>
                 <a href="specification.html">Specification</a>
                 <a href="adopt.html">Adopt</a>
-                <a href="https://github.com/agentsecurity/agentsecurity">GitHub</a>
+                <a href="integration.html">Integration</a>
+                <a href="best-practices.html">Best Practices</a>
+                <a href="faq.html">FAQ</a>
+                <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>
             </div>
         </div>
     </nav>
@@ -75,9 +245,13 @@
 
         <div class="step">
             <h3><span class="step-number">2</span> Initialize Your Policy</h3>
-            <pre># Pick your tier: basic, standard, strict, regulated
+            <pre># Interactive mode — prompts for tier and name
+agentsec init
+
+# Or specify directly
 agentsec init --tier standard --name my-agent</pre>
-            <p>This creates <code>AGENTSECURITY.md</code> in your project root with sensible defaults.</p>
+            <p>This creates <code>AGENTSECURITY.md</code> in your project root with sensible defaults.
+                The interactive selector shows all four tiers with descriptions.</p>
         </div>
 
         <div class="step">
@@ -88,7 +262,21 @@ agentsec init --tier standard --name my-agent</pre>
 agentsec validate .
 
 # Scan your codebase for violations
-agentsec check .</pre>
+agentsec check .
+
+# Get framework-specific recommendations
+agentsec suggest .</pre>
+        </div>
+
+        <div class="step">
+            <h3><span class="step-number">4</span> Lock and Protect</h3>
+            <pre># Generate tamper-protection lock file
+agentsec lock .
+
+# Verify integrity (use in CI/CD)
+agentsec verify .</pre>
+            <p>The lock file stores a SHA-256 hash of your policy. If an agent or process
+                modifies <code>AGENTSECURITY.md</code>, <code>agentsec verify</code> will catch it and exit with code 1.</p>
         </div>
 
         <h2>CI/CD Integration</h2>
@@ -103,6 +291,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install agentsec
         run: pip install agentsec
+      - name: Verify policy integrity
+        run: agentsec verify . --lock .agentsecurity.lock
       - name: Validate policy
         run: agentsec validate .
       - name: Check codebase
@@ -152,21 +342,67 @@ Declared tools: {', '.join(policy.declared_tool_names)}
 
         <h3>Claude Code</h3>
         <p>Place <code>AGENTSECURITY.md</code> in your project root alongside <code>CLAUDE.md</code>.
-        Claude Code will discover it automatically when configured.</p>
+            Claude Code will discover it automatically when configured.</p>
+
+        <h2>Framework Auto-Detection</h2>
+        <p>Run <code>agentsec suggest</code> to auto-detect your agent framework and get tailored recommendations:</p>
+        <pre>agentsec suggest .</pre>
+        <p>Detected frameworks include:</p>
+        <ul>
+            <li><strong>Python:</strong> LangChain, CrewAI, AutoGen, OpenAI SDK, Anthropic SDK,
+                Gemini SDK, LlamaIndex, LiteLLM, Haystack, PydanticAI, and more</li>
+            <li><strong>JavaScript/TypeScript:</strong> LangChain.js, Vercel AI SDK, OpenAI SDK,
+                Anthropic SDK, Mastra, LlamaIndex.TS</li>
+            <li><strong>Agent Platforms:</strong> Claude Code, Cursor, GitHub Copilot</li>
+        </ul>
+        <p>The suggest command also generates enforcement guides specific to each framework,
+            showing exactly how to make your agent respect its security boundaries.</p>
+
+        <h2>Tamper Protection</h2>
+        <p>Agents must <strong>never</strong> modify their own security policy.
+            Use the lock/verify workflow to enforce this:</p>
+        <pre># Generate a lock file with SHA-256 hash
+agentsec lock .
+
+# Verify the policy hasn't been tampered with
+agentsec verify . --lock .agentsecurity.lock</pre>
+        <p>Add <code>.agentsecurity.lock</code> to version control and run
+            <code>agentsec verify</code> in your CI pipeline to block deployments
+            if the policy has been altered.</p>
+
+        <h2>Scan Exceptions</h2>
+        <p>Use <code>.agentsecignore</code> to exclude files from scanning (vendor code, generated code, etc.):</p>
+        <pre># .agentsecignore
+vendor/*
+*.generated.ts
+prisma/client/
+neutralino/</pre>
+        <p>Patterns follow the same syntax as <code>.gitignore</code>. Lines starting with <code>#</code>
+            are comments. Test files (*.test.ts, __tests__/) are automatically scanned with
+            reduced severity for secrets.</p>
 
         <h2>CLI Reference</h2>
 
-        <pre># Validate AGENTSECURITY.md against the spec
+        <pre># Initialize from template (interactive or with flags)
+agentsec init [--tier basic|standard|strict|regulated] [--name NAME]
+
+# Validate AGENTSECURITY.md against the spec
 agentsec validate [path]
 
 # Scan codebase for violations
 agentsec check [path] --fail-on high|medium|low
 
+# Detect frameworks and get recommendations
+agentsec suggest [path] --format text|json
+
+# Generate tamper-protection lock file
+agentsec lock [path] --output .agentsecurity.lock
+
+# Verify policy integrity against lock file
+agentsec verify [path] --lock .agentsecurity.lock
+
 # Generate security scorecard
 agentsec report [path] --format text|json|badge
-
-# Initialize from template
-agentsec init --tier basic|standard|strict|regulated
 
 # Output policy properties as JSON
 agentsec read-properties [path]
@@ -190,18 +426,25 @@ agentsec to-prompt [path]</pre>
 
         <p>Pre-built templates are available in the repository:</p>
         <ul>
-            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/templates/basic" style="color:var(--accent)">Basic</a> — Minimal, ~30 lines</li>
-            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/templates/standard" style="color:var(--accent)">Standard</a> — Balanced, ~80 lines</li>
-            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/templates/strict" style="color:var(--accent)">Strict</a> — Maximum enforcement, ~120 lines</li>
-            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/templates/regulated" style="color:var(--accent)">Regulated</a> — Full compliance, ~150 lines</li>
+            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/templates/basic"
+                    style="color:var(--accent)">Basic</a> — Minimal, ~30 lines</li>
+            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/templates/standard"
+                    style="color:var(--accent)">Standard</a> — Balanced, ~80 lines</li>
+            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/templates/strict"
+                    style="color:var(--accent)">Strict</a> — Maximum enforcement, ~120 lines</li>
+            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/templates/regulated"
+                    style="color:var(--accent)">Regulated</a> — Full compliance, ~150 lines</li>
         </ul>
 
         <h2>Examples</h2>
 
         <ul>
-            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/examples/langchain-agent" style="color:var(--accent)">LangChain Research Agent</a> — Standard tier, read-only web search</li>
-            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/examples/claude-code-project" style="color:var(--accent)">Claude Code Project</a> — Standard tier, file + shell access</li>
-            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/examples/financial-processor" style="color:var(--accent)">Financial Processor</a> — Strict tier, Stripe API + PCI scope</li>
+            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/examples/langchain-agent"
+                    style="color:var(--accent)">LangChain Research Agent</a> — Standard tier, read-only web search</li>
+            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/examples/claude-code-project"
+                    style="color:var(--accent)">Claude Code Project</a> — Standard tier, file + shell access</li>
+            <li><a href="https://github.com/agentsecurity/agentsecurity/tree/main/examples/financial-processor"
+                    style="color:var(--accent)">Financial Processor</a> — Strict tier, Stripe API + PCI scope</li>
         </ul>
     </div>
 
@@ -211,9 +454,28 @@ agentsec to-prompt [path]</pre>
                 <a href="/">Home</a> |
                 <a href="what-is-agentsecurity.html">What is it?</a> |
                 <a href="specification.html">Specification</a> |
-                <a href="https://github.com/agentsecurity/agentsecurity">GitHub</a>
+                <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>
             </p>
         </div>
     </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-bash.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    <script>
+        document.getElementById('mobile-menu').addEventListener('click', function () {
+            document.getElementById('nav-links').classList.toggle('active');
+        });
+
+        document.querySelectorAll('pre').forEach(pre => {
+            // Apply language-bash if it's the default
+            if (!pre.innerHTML.includes('class="language')) {
+                let code = pre.innerHTML;
+                pre.innerHTML = `<code class="language-bash">${code}</code>`;
+            }
+        });
+    </script>
 </body>
+
 </html>

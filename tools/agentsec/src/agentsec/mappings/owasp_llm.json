@@ -1,0 +1,76 @@
+{
+  "framework": "OWASP Top 10 for LLM Applications (2025)",
+  "version": "2025",
+  "controls": {
+    "LLM01": {
+      "name": "Prompt Injection",
+      "description": "Malicious inputs causing unauthorized actions or data disclosure",
+      "agentsec_rules": ["ASEC-016"],
+      "mitigation": "Input sanitization, system prompt locking, output filtering",
+      "tier_required": "standard"
+    },
+    "LLM02": {
+      "name": "Insecure Output Handling",
+      "description": "LLM-generated code/content creating vulnerabilities when executed",
+      "agentsec_rules": ["ASEC-020"],
+      "mitigation": "No eval/exec, sandbox execution, output encoding",
+      "tier_required": "basic"
+    },
+    "LLM03": {
+      "name": "Training Data Poisoning",
+      "description": "Manipulation of training/fine-tuning data",
+      "agentsec_rules": [],
+      "mitigation": "Data provenance verification (out of scope for AGENTSECURITY.md)",
+      "tier_required": null
+    },
+    "LLM04": {
+      "name": "Model Denial of Service",
+      "description": "Resource exhaustion attacks",
+      "agentsec_rules": ["ASEC-016"],
+      "mitigation": "Resource limits in runtime section, max_autonomous_steps",
+      "tier_required": "standard"
+    },
+    "LLM05": {
+      "name": "Supply Chain Vulnerabilities",
+      "description": "Vulnerabilities in third-party libraries and plugins",
+      "agentsec_rules": ["ASEC-021"],
+      "mitigation": "Dependency scanning, SBOM, secret detection",
+      "tier_required": "standard"
+    },
+    "LLM06": {
+      "name": "Sensitive Information Disclosure",
+      "description": "LLM revealing PII, secrets, or confidential data",
+      "agentsec_rules": ["ASEC-021"],
+      "mitigation": "Secret scanning, PII detection, output filtering",
+      "tier_required": "standard"
+    },
+    "LLM07": {
+      "name": "Insecure Plugin Design",
+      "description": "Plugins performing actions without proper authorization",
+      "agentsec_rules": ["ASEC-010", "ASEC-022"],
+      "mitigation": "Tool allowlisting, scope restrictions, declaration enforcement",
+      "tier_required": "standard"
+    },
+    "LLM08": {
+      "name": "Excessive Agency",
+      "description": "LLM taking autonomous actions with unintended consequences",
+      "agentsec_rules": ["ASEC-011", "ASEC-012", "ASEC-016"],
+      "mitigation": "HITL, max_autonomous_steps, least-privilege tool permissions",
+      "tier_required": "standard"
+    },
+    "LLM09": {
+      "name": "Overreliance",
+      "description": "Users trusting LLM output without verification",
+      "agentsec_rules": [],
+      "mitigation": "HITL for critical decisions (human verification)",
+      "tier_required": "strict"
+    },
+    "LLM10": {
+      "name": "Model Theft",
+      "description": "Unauthorized access to proprietary models",
+      "agentsec_rules": [],
+      "mitigation": "Access controls (out of scope for AGENTSECURITY.md)",
+      "tier_required": null
+    }
+  }
+}

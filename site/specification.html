@@ -1,54 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Specification — AgentSecurity</title>
+    <meta name="description"
+        content="The formal specification for AGENTSECURITY.md files including frontmatter schema and validation rules.">
+    <meta property="og:title" content="Specification | AgentSecurity">
+    <meta property="og:description" content="The formal specification for AGENTSECURITY.md files.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
     <style>
         :root {
-            --bg: #0a0a0a; --surface: #141414; --border: #262626;
-            --text: #e5e5e5; --text-muted: #a3a3a3; --accent: #22c55e;
+            --bg: #0a0a0a;
+            --surface: #141414;
+            --border: #262626;
+            --text: #e5e5e5;
+            --text-muted: #a3a3a3;
+            --accent: #22c55e;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
-            background: var(--bg); color: var(--text); line-height: 1.7;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
         }
-        .container { max-width: 750px; margin: 0 auto; padding: 0 24px; }
-        nav { border-bottom: 1px solid var(--border); padding: 16px 0; }
-        nav .inner { max-width: 900px; margin: 0 auto; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; }
-        nav .logo { font-weight: 700; font-size: 18px; color: var(--accent); text-decoration: none; }
-        nav .links a { color: var(--text-muted); text-decoration: none; margin-left: 24px; font-size: 14px; }
-        .content { padding: 60px 0 80px; }
-        h1 { font-size: 32px; margin-bottom: 24px; }
-        h2 { font-size: 22px; margin: 40px 0 16px; color: var(--accent); }
-        h3 { font-size: 18px; margin: 24px 0 12px; }
-        p { margin-bottom: 16px; color: var(--text-muted); }
-        p strong { color: var(--text); }
-        ul { margin: 0 0 16px 20px; color: var(--text-muted); }
-        li { margin-bottom: 4px; }
-        code { background: #1a1a1a; padding: 2px 6px; border-radius: 4px; font-size: 14px; }
+
+        .container {
+            max-width: 750px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        nav {
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+        }
+
+        nav .inner {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 0 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav .logo {
+            font-weight: 700;
+            font-size: 18px;
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 24px;
+            font-size: 14px;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: var(--text);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+                flex-direction: column;
+                position: absolute;
+                top: 60px;
+                left: 0;
+                right: 0;
+                background: var(--surface);
+                padding: 20px;
+                border-bottom: 1px solid var(--border);
+                z-index: 100;
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .menu-toggle {
+                display: block;
+            }
+
+            .nav-links a {
+                margin: 10px 0;
+                font-size: 16px;
+                margin-left: 0;
+            }
+        }
+
+        .content {
+            padding: 60px 0 80px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 24px;
+        }
+
+        h2 {
+            font-size: 22px;
+            margin: 40px 0 16px;
+            color: var(--accent);
+        }
+
+        h3 {
+            font-size: 18px;
+            margin: 24px 0 12px;
+        }
+
+        p {
+            margin-bottom: 16px;
+            color: var(--text-muted);
+        }
+
+        p strong {
+            color: var(--text);
+        }
+
+        ul {
+            margin: 0 0 16px 20px;
+            color: var(--text-muted);
+        }
+
+        li {
+            margin-bottom: 4px;
+        }
+
+        code {
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
         pre {
-            background: #000; border: 1px solid var(--border); border-radius: 8px;
-            padding: 16px; overflow-x: auto; margin: 16px 0; font-size: 13px; line-height: 1.5;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+            overflow-x: auto;
+            margin: 16px 0;
+            font-size: 13px;
+            line-height: 1.5;
         }
-        table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14px; }
-        th, td { padding: 10px 12px; border: 1px solid var(--border); text-align: left; }
-        th { background: var(--surface); color: var(--text); }
-        td { color: var(--text-muted); }
-        footer { border-top: 1px solid var(--border); padding: 32px 0; text-align: center; color: var(--text-muted); font-size: 13px; }
-        footer a { color: var(--accent); text-decoration: none; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            text-align: left;
+        }
+
+        th {
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        td {
+            color: var(--text-muted);
+        }
+
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 32px 0;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+        }
+
+        footer a {
+            color: var(--accent);
+            text-decoration: none;
+        }
     </style>
 </head>
+
 <body>
     <nav>
         <div class="inner">
-            <a href="/" class="logo">AgentSecurity</a>
-            <div class="links">
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 8px;"><img src="assets/logo.png" alt="AgentSecurity Logo" style="height: 32px; width: auto;" />AgentSecurity</a>
+            <button class="menu-toggle" id="mobile-menu">☰</button>
+            <div class="nav-links" id="nav-links">
                 <a href="what-is-agentsecurity.html">What is it?</a>
                 <a href="specification.html">Specification</a>
                 <a href="adopt.html">Adopt</a>
-                <a href="https://github.com/agentsecurity/agentsecurity">GitHub</a>
+                <a href="integration.html">Integration</a>
+                <a href="best-practices.html">Best Practices</a>
+                <a href="faq.html">FAQ</a>
+                <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>
             </div>
         </div>
     </nav>
@@ -66,25 +239,66 @@
         <h3>Required Fields</h3>
 
         <table>
-            <tr><th>Field</th><th>Type</th><th>Constraints</th></tr>
-            <tr><td><code>name</code></td><td>string</td><td>1-64 chars, lowercase alphanumeric + hyphens. No leading/trailing/consecutive hyphens.</td></tr>
-            <tr><td><code>description</code></td><td>string</td><td>1-512 chars. What the agent does and its security context.</td></tr>
-            <tr><td><code>security_tier</code></td><td>enum</td><td><code>basic</code> | <code>standard</code> | <code>strict</code> | <code>regulated</code></td></tr>
-            <tr><td><code>version</code></td><td>string</td><td>Spec version, <code>major.minor</code> format (e.g., <code>"0.1"</code>)</td></tr>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Constraints</th>
+            </tr>
+            <tr>
+                <td><code>name</code></td>
+                <td>string</td>
+                <td>1-64 chars, lowercase alphanumeric + hyphens. No leading/trailing/consecutive hyphens.</td>
+            </tr>
+            <tr>
+                <td><code>description</code></td>
+                <td>string</td>
+                <td>1-512 chars. What the agent does and its security context.</td>
+            </tr>
+            <tr>
+                <td><code>security_tier</code></td>
+                <td>enum</td>
+                <td><code>basic</code> | <code>standard</code> | <code>strict</code> | <code>regulated</code></td>
+            </tr>
+            <tr>
+                <td><code>version</code></td>
+                <td>string</td>
+                <td>Spec version, <code>major.minor</code> format (e.g., <code>"0.1"</code>)</td>
+            </tr>
         </table>
 
         <h3>Optional Fields</h3>
 
         <table>
-            <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
-            <tr><td><code>governance</code></td><td>array</td><td>[]</td><td>Compliance frameworks: NIST-AI-RMF, OWASP-LLM-TOP10, ISO-42001, EU-AI-ACT, SOC2, HIPAA, PCI-DSS, GDPR</td></tr>
-            <tr><td><code>enforcement</code></td><td>enum</td><td>warn</td><td><code>warn</code> | <code>block</code> | <code>block_and_audit</code></td></tr>
-            <tr><td><code>metadata</code></td><td>object</td><td>{}</td><td>Arbitrary key-value pairs (author, org, last_reviewed, contact)</td></tr>
+            <tr>
+                <th>Field</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
+            </tr>
+            <tr>
+                <td><code>governance</code></td>
+                <td>array</td>
+                <td>[]</td>
+                <td>Compliance frameworks: NIST-AI-RMF, OWASP-LLM-TOP10, ISO-42001, EU-AI-ACT, SOC2, HIPAA, PCI-DSS,
+                    GDPR</td>
+            </tr>
+            <tr>
+                <td><code>enforcement</code></td>
+                <td>enum</td>
+                <td>warn</td>
+                <td><code>warn</code> | <code>block</code> | <code>block_and_audit</code></td>
+            </tr>
+            <tr>
+                <td><code>metadata</code></td>
+                <td>object</td>
+                <td>{}</td>
+                <td>Arbitrary key-value pairs (author, org, last_reviewed, contact)</td>
+            </tr>
         </table>
 
         <h2>Example</h2>
 
-        <pre>---
+        <pre><code class="language-markdown">---
 name: my-agent
 description: "Processes support tickets and generates responses"
 security_tier: standard
@@ -119,21 +333,81 @@ tools:
     scope:
       allowed_paths: ["./src/"]
     requires_confirmation: false
-```</pre>
+```</code></pre>
 
         <h2>Tier Definitions</h2>
 
         <table>
-            <tr><th>Requirement</th><th>basic</th><th>standard</th><th>strict</th><th>regulated</th></tr>
-            <tr><td>Tool allowlisting</td><td>recommended</td><td>required</td><td>required</td><td>required</td></tr>
-            <tr><td>Human-in-the-loop</td><td>optional</td><td>high-risk</td><td>destructive ops</td><td>all external</td></tr>
-            <tr><td>Sandbox required</td><td>no</td><td>recommended</td><td>required</td><td>required + audited</td></tr>
-            <tr><td>Network restrictions</td><td>none</td><td>allowlist</td><td>strict allowlist</td><td>default-deny</td></tr>
-            <tr><td>Audit logging</td><td>optional</td><td>recommended</td><td>required</td><td>tamper-proof</td></tr>
-            <tr><td>Secret scanning</td><td>recommended</td><td>required</td><td>required</td><td>required + rotation</td></tr>
-            <tr><td>Compliance mapping</td><td>none</td><td>OWASP</td><td>OWASP+NIST</td><td>Full</td></tr>
-            <tr><td>Max steps</td><td>unlimited</td><td>100</td><td>50</td><td>25</td></tr>
-            <tr><td>Review cadence</td><td>none</td><td>quarterly</td><td>monthly</td><td>bi-weekly</td></tr>
+            <tr>
+                <th>Requirement</th>
+                <th>basic</th>
+                <th>standard</th>
+                <th>strict</th>
+                <th>regulated</th>
+            </tr>
+            <tr>
+                <td>Tool allowlisting</td>
+                <td>recommended</td>
+                <td>required</td>
+                <td>required</td>
+                <td>required</td>
+            </tr>
+            <tr>
+                <td>Human-in-the-loop</td>
+                <td>optional</td>
+                <td>high-risk</td>
+                <td>destructive ops</td>
+                <td>all external</td>
+            </tr>
+            <tr>
+                <td>Sandbox required</td>
+                <td>no</td>
+                <td>recommended</td>
+                <td>required</td>
+                <td>required + audited</td>
+            </tr>
+            <tr>
+                <td>Network restrictions</td>
+                <td>none</td>
+                <td>allowlist</td>
+                <td>strict allowlist</td>
+                <td>default-deny</td>
+            </tr>
+            <tr>
+                <td>Audit logging</td>
+                <td>optional</td>
+                <td>recommended</td>
+                <td>required</td>
+                <td>tamper-proof</td>
+            </tr>
+            <tr>
+                <td>Secret scanning</td>
+                <td>recommended</td>
+                <td>required</td>
+                <td>required</td>
+                <td>required + rotation</td>
+            </tr>
+            <tr>
+                <td>Compliance mapping</td>
+                <td>none</td>
+                <td>OWASP</td>
+                <td>OWASP+NIST</td>
+                <td>Full</td>
+            </tr>
+            <tr>
+                <td>Max steps</td>
+                <td>unlimited</td>
+                <td>100</td>
+                <td>50</td>
+                <td>25</td>
+            </tr>
+            <tr>
+                <td>Review cadence</td>
+                <td>none</td>
+                <td>quarterly</td>
+                <td>monthly</td>
+                <td>bi-weekly</td>
+            </tr>
         </table>
 
         <h2>Body Sections</h2>
@@ -141,8 +415,10 @@ tools:
         <p>The markdown body supports these recommended sections (not structurally enforced):</p>
 
         <ul>
-            <li><strong>Constraints</strong> — Hard rules the agent must never violate (hard_no list, max steps, escalation)</li>
-            <li><strong>Tools</strong> — Declared tool permissions with name, permission level, scope, and confirmation requirements</li>
+            <li><strong>Constraints</strong> — Hard rules the agent must never violate (hard_no list, max steps,
+                escalation)</li>
+            <li><strong>Tools</strong> — Declared tool permissions with name, permission level, scope, and confirmation
+                requirements</li>
             <li><strong>Runtime</strong> — Sandbox type, network allowlist, resource limits, timeouts</li>
             <li><strong>Human-in-the-Loop</strong> — Actions requiring approval, mechanism, timeout, escalation</li>
             <li><strong>Audit</strong> — Log target, format, retention, tamper protection, alerts</li>
@@ -153,19 +429,84 @@ tools:
         <h2>Validation Rules</h2>
 
         <table>
-            <tr><th>ID</th><th>Rule</th><th>Severity</th><th>Control</th></tr>
-            <tr><td>ASEC-001</td><td>Missing required fields</td><td>high</td><td>Spec</td></tr>
-            <tr><td>ASEC-002</td><td>Invalid name format</td><td>high</td><td>Spec</td></tr>
-            <tr><td>ASEC-003</td><td>Invalid security_tier</td><td>high</td><td>Spec</td></tr>
-            <tr><td>ASEC-010</td><td>Missing tool declarations</td><td>high</td><td>LLM07</td></tr>
-            <tr><td>ASEC-011</td><td>Overprivileged tools</td><td>high</td><td>LLM08</td></tr>
-            <tr><td>ASEC-012</td><td>Missing HITL config</td><td>medium</td><td>NIST</td></tr>
-            <tr><td>ASEC-013</td><td>Missing sandbox</td><td>high</td><td>Agentic-5</td></tr>
-            <tr><td>ASEC-014</td><td>Missing audit config</td><td>high</td><td>ISO-42001</td></tr>
-            <tr><td>ASEC-015</td><td>Unrestricted network</td><td>high</td><td>Agentic-5</td></tr>
-            <tr><td>ASEC-020</td><td>Dangerous code patterns</td><td>high</td><td>LLM02</td></tr>
-            <tr><td>ASEC-021</td><td>Hardcoded secrets</td><td>high</td><td>LLM06</td></tr>
-            <tr><td>ASEC-022</td><td>Undeclared tool usage</td><td>high/med</td><td>LLM07</td></tr>
+            <tr>
+                <th>ID</th>
+                <th>Rule</th>
+                <th>Severity</th>
+                <th>Control</th>
+            </tr>
+            <tr>
+                <td>ASEC-001</td>
+                <td>Missing required fields</td>
+                <td>high</td>
+                <td>Spec</td>
+            </tr>
+            <tr>
+                <td>ASEC-002</td>
+                <td>Invalid name format</td>
+                <td>high</td>
+                <td>Spec</td>
+            </tr>
+            <tr>
+                <td>ASEC-003</td>
+                <td>Invalid security_tier</td>
+                <td>high</td>
+                <td>Spec</td>
+            </tr>
+            <tr>
+                <td>ASEC-010</td>
+                <td>Missing tool declarations</td>
+                <td>high</td>
+                <td>LLM07</td>
+            </tr>
+            <tr>
+                <td>ASEC-011</td>
+                <td>Overprivileged tools</td>
+                <td>high</td>
+                <td>LLM08</td>
+            </tr>
+            <tr>
+                <td>ASEC-012</td>
+                <td>Missing HITL config</td>
+                <td>medium</td>
+                <td>NIST</td>
+            </tr>
+            <tr>
+                <td>ASEC-013</td>
+                <td>Missing sandbox</td>
+                <td>high</td>
+                <td>Agentic-5</td>
+            </tr>
+            <tr>
+                <td>ASEC-014</td>
+                <td>Missing audit config</td>
+                <td>high</td>
+                <td>ISO-42001</td>
+            </tr>
+            <tr>
+                <td>ASEC-015</td>
+                <td>Unrestricted network</td>
+                <td>high</td>
+                <td>Agentic-5</td>
+            </tr>
+            <tr>
+                <td>ASEC-020</td>
+                <td>Dangerous code patterns</td>
+                <td>high</td>
+                <td>LLM02</td>
+            </tr>
+            <tr>
+                <td>ASEC-021</td>
+                <td>Hardcoded secrets</td>
+                <td>high</td>
+                <td>LLM06</td>
+            </tr>
+            <tr>
+                <td>ASEC-022</td>
+                <td>Undeclared tool usage</td>
+                <td>high/med</td>
+                <td>LLM07</td>
+            </tr>
         </table>
 
         <h2>JSON Schema</h2>
@@ -176,7 +517,9 @@ tools:
         </p>
 
         <p>
-            Full specification source: <a href="https://github.com/agentsecurity/agentsecurity/blob/main/spec/AGENTSECURITY.md" style="color:var(--accent)">spec/AGENTSECURITY.md</a>
+            Full specification source: <a
+                href="https://github.com/agentsecurity/agentsecurity/blob/main/spec/AGENTSECURITY.md"
+                style="color:var(--accent)">spec/AGENTSECURITY.md</a>
         </p>
     </div>
 
@@ -186,9 +529,19 @@ tools:
                 <a href="/">Home</a> |
                 <a href="what-is-agentsecurity.html">What is it?</a> |
                 <a href="adopt.html">Adopt</a> |
-                <a href="https://github.com/agentsecurity/agentsecurity">GitHub</a>
+                <a href="https://github.com/agentsecurity-ai/agentsecurity">GitHub</a>
             </p>
         </div>
     </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-yaml.min.js"></script>
+    <script>
+        document.getElementById('mobile-menu').addEventListener('click', function () {
+            document.getElementById('nav-links').classList.toggle('active');
+        });
+    </script>
 </body>
+
 </html>

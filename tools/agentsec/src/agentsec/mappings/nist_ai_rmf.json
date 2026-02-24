@@ -1,0 +1,56 @@
+{
+  "framework": "NIST AI Risk Management Framework",
+  "version": "1.0",
+  "controls": {
+    "GOVERN-1.1": {
+      "name": "Policies and procedures for AI risk management",
+      "agentsec_rules": ["ASEC-001", "ASEC-017"],
+      "mitigation": "AGENTSECURITY.md itself is the policy artifact; review cadence enforcement"
+    },
+    "GOVERN-1.2": {
+      "name": "Accountability structures for AI risk",
+      "agentsec_rules": ["ASEC-012"],
+      "mitigation": "HITL configuration, escalation contacts"
+    },
+    "MAP-1.1": {
+      "name": "Intended purpose and context of use",
+      "agentsec_rules": ["ASEC-001", "ASEC-007"],
+      "mitigation": "Agent name + description fields define purpose"
+    },
+    "MAP-1.5": {
+      "name": "Risk identification and assessment",
+      "agentsec_rules": ["ASEC-016"],
+      "mitigation": "Constraints section + threat model (strict/regulated tiers)"
+    },
+    "MAP-2.1": {
+      "name": "Intended users and stakeholders identified",
+      "agentsec_rules": [],
+      "mitigation": "metadata.author, metadata.org, metadata.contact"
+    },
+    "MEASURE-2.6": {
+      "name": "AI system monitoring and logging",
+      "agentsec_rules": ["ASEC-014"],
+      "mitigation": "Audit section with logging configuration"
+    },
+    "MEASURE-2.7": {
+      "name": "AI system testing and evaluation",
+      "agentsec_rules": ["ASEC-020"],
+      "mitigation": "Code scanning for dangerous patterns; regular validation"
+    },
+    "MANAGE-1.3": {
+      "name": "Responses to identified risks",
+      "agentsec_rules": ["ASEC-012", "ASEC-013"],
+      "mitigation": "HITL approval flows, sandbox enforcement, escalation procedures"
+    },
+    "MANAGE-2.2": {
+      "name": "Mechanisms for human oversight",
+      "agentsec_rules": ["ASEC-012"],
+      "mitigation": "Human-in-the-Loop section, approval mechanisms, dual approval"
+    },
+    "MANAGE-4.1": {
+      "name": "Incident response and recovery",
+      "agentsec_rules": ["ASEC-014"],
+      "mitigation": "Audit alerts, incident response plan (regulated tier)"
+    }
+  }
+}

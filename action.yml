@@ -1,0 +1,63 @@
+name: 'AgentSecurity Validator'
+description: 'Validates AGENTSECURITY.md files against the official specification'
+branding:
+  icon: 'shield'
+  color: 'blue'
+
+inputs:
+  path:
+    description: 'Path or directory containing AGENTSECURITY.md'
+    required: false
+    default: '.'
+  fail-on-warnings:
+    description: 'Fail the action if there are warnings (valid but suboptimal configuration)'
+    required: false
+    default: 'false'
+
+outputs:
+  score:
+    description: 'Validation score (0-100)'
+    value: ${{ steps.validate.outputs.score }}
+  report_path:
+    description: 'Path to the generated JSON report'
+    value: ${{ steps.validate.outputs.report_path }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '>=3.9'
+
+    - name: Install agentsec CLI
+      shell: bash
+      run: |
+        pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=tools/agentsec"
+        # Or from PyPI when published: pip install agentsec
+
+    - name: Run Validation
+      id: validate
+      shell: bash
+      run: |
+        echo "Running agentsec validate on ${{ inputs.path }}"
+        agentsec validate "${{ inputs.path }}" --format json --output report.json
+        
+        SCORE=$(jq -r '.score' report.json)
+        echo "score=$SCORE" >> $GITHUB_OUTPUT
+        echo "report_path=report.json" >> $GITHUB_OUTPUT
+        
+        # Check pass/fail
+        if [[ $(jq -r '.passed' report.json) == "false" ]]; then
+          echo "::error::AGENTSECURITY.md validation failed. Score: $SCORE/100"
+          exit 1
+        fi
+        
+        # Output warnings
+        if [[ "${{ inputs.fail-on-warnings }}" == "true" ]]; then
+          WARNING_COUNT=$(jq '.findings | map(select(.severity == "medium" or .severity == "low")) | length' report.json)
+          if [[ $WARNING_COUNT -gt 0 ]]; then
+            echo "::error::Warnings found and fail-on-warnings is true. ($WARNING_COUNT warnings)"
+            exit 1
+          fi
+        fi
