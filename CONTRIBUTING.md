@@ -10,23 +10,23 @@ Thank you for your interest in contributing to the AgentSecurity open standard.
 - PRs to `spec/AGENTSECURITY.md` or `spec/agentsecurity.schema.json` require RFC approval
 
 ### New Validation Rules
-- Add rules to `tools/agentsec/src/agentsec/rules/` (or extend `validator.py`/`scanner.py`)
+- Add rules to `packages/agentsec/src/agentsec/rules/` (or extend `validator.py`/`scanner.py`)
 - Every rule must have:
   - A unique ID (`ASEC-XXX`)
   - A severity level (high, medium, low)
   - A mapped compliance control
-  - Unit tests in `tools/agentsec/tests/`
+  - Unit tests in `packages/agentsec/tests/`
 
 ### Framework Examples
 - Add examples to `examples/` with a working AGENTSECURITY.md
 - Include a README explaining the agent and how the policy applies
 
 ### Compliance Mappings
-- Add or update mappings in `tools/agentsec/src/agentsec/mappings/`
+- Add or update mappings in `packages/agentsec/src/agentsec/mappings/`
 - Mappings should reference specific control IDs from the framework
 
 ### Documentation
-- Improve `site/` pages for clarity
+- Improve `docs/` pages for clarity
 - Fix typos, broken links, or unclear wording
 
 ### Bug Reports
@@ -44,10 +44,10 @@ git clone https://github.com/agentsecurity-ai/agentsecurity.git
 cd agentsecurity
 
 # Install the CLI in development mode
-pip install -e "./tools/agentsec[dev]"
+pip install -e "./packages/agentsec[dev]"
 
 # Run tests
-pytest tools/agentsec/tests/ -v
+pytest packages/agentsec/tests/ -v
 
 # Validate all templates
 for dir in templates/*/; do agentsec validate "$dir/AGENTSECURITY.md"; done
@@ -63,7 +63,7 @@ for dir in templates/*/; do agentsec validate "$dir/AGENTSECURITY.md"; done
 
 1. Fork the repo and create a feature branch
 2. Add tests for new functionality
-3. Ensure all tests pass: `pytest tools/agentsec/tests/ -v`
+3. Ensure all tests pass: `pytest packages/agentsec/tests/ -v`
 4. Ensure templates validate: `agentsec validate templates/standard/AGENTSECURITY.md`
 5. Open a PR with a clear description of the change
 

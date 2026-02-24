@@ -33,7 +33,7 @@ runs:
     - name: Install agentsec CLI
       shell: bash
       run: |
-        pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=tools/agentsec"
+        pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=packages/agentsec"
         # Or from PyPI when published: pip install agentsec
 
     - name: Run Validation

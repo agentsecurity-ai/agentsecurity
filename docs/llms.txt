@@ -8,7 +8,7 @@
 
 ## Pages
 - [Home](https://agentsecurity.in/) — Overview, quickstart, tier selection
-- [What is AgentSecurity?](https://agentsecurity.in/what-is-agentsecurity.html) — Problem, solution, progressive disclosure, limitations
+- [What is AgentSecurity?](https://agentsecurity.in/about.html) — Problem, solution, progressive disclosure, limitations
 - [Specification](https://agentsecurity.in/specification.html) — Full format reference, field definitions, tier table, validation rules
 - [Adopt](https://agentsecurity.in/adopt.html) — Installation, CI/CD, framework integration, CLI reference, templates
 - [Integration](https://agentsecurity.in/integration.html) — Model-agnostic integration, framework detection, tamper protection

@@ -23,10 +23,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Install agentsec
-        run: pip install -e "./tools/agentsec[dev]"
+        run: pip install -e "./packages/agentsec[dev]"
 
       - name: Run tests
-        run: pytest tools/agentsec/tests/ -v --tb=short
+        run: pytest packages/agentsec/tests/ -v --tb=short
 
       - name: Validate all templates
         run: |
@@ -35,20 +35,20 @@ jobs:
             agentsec validate "$dir/AGENTSECURITY.md"
           done
 
-      - name: Validate all examples (except bad-agent)
+      - name: Validate all examples (except vulnerable-agent)
         run: |
           for dir in examples/langchain-agent examples/claude-code-project examples/financial-processor; do
             echo "Validating $dir..."
             agentsec validate "$dir/AGENTSECURITY.md"
           done
 
-      - name: Verify bad-agent fails validation
+      - name: Verify vulnerable-agent fails validation
         run: |
-          if agentsec validate examples/bad-agent/AGENTSECURITY.md 2>/dev/null; then
-            echo "ERROR: bad-agent should have failed validation"
+          if agentsec validate examples/vulnerable-agent/AGENTSECURITY.md 2>/dev/null; then
+            echo "ERROR: vulnerable-agent should have failed validation"
             exit 1
           else
-            echo "PASS: bad-agent correctly fails validation"
+            echo "PASS: vulnerable-agent correctly fails validation"
           fi
 
   validate-schema:

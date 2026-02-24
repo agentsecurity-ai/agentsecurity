@@ -27,17 +27,17 @@ jobs:
             "templates/standard/AGENTSECURITY.md"
             "templates/strict/AGENTSECURITY.md"
             "templates/regulated/AGENTSECURITY.md"
-            "examples/bad-agent/AGENTSECURITY.md"
+            "examples/vulnerable-agent/AGENTSECURITY.md"
             "examples/claude-code-project/AGENTSECURITY.md"
             "examples/financial-processor/AGENTSECURITY.md"
             "examples/gemini-workflow/AGENTSECURITY.md"
             "examples/langchain-agent/AGENTSECURITY.md"
             "examples/openai-assistant/AGENTSECURITY.md"
-            "site/index.html"
-            "site/what-is-agentsecurity.html"
-            "site/specification.html"
-            "site/adopt.html"
-            "site/llms.txt"
+            "docs/index.html"
+            "docs/about.html"
+            "docs/specification.html"
+            "docs/adopt.html"
+            "docs/llms.txt"
           )
 
           missing=0
@@ -68,7 +68,7 @@ jobs:
           python3 -c "
           import glob, sys, re
           failed = False
-          for f in sorted(glob.glob('site/*.html')):
+          for f in sorted(glob.glob('docs/*.html')):
               with open(f, 'r') as file:
                   content = file.read()
               if '<!DOCTYPE html>' not in content and '<!doctype html>' not in content:
@@ -96,14 +96,14 @@ jobs:
           set -euo pipefail
 
           failed=0
-          for f in site/*.html; do
+          for f in docs/*.html; do
             while IFS= read -r link; do
               # Skip external/anchors/mailto/absolute paths.
               if [[ "$link" =~ ^https?:// ]] || [[ "$link" =~ ^# ]] || [[ "$link" =~ ^mailto: ]] || [[ "$link" =~ ^/ ]]; then
                 continue
               fi
 
-              target="site/$link"
+              target="docs/$link"
               if [[ ! -e "$target" ]]; then
                 echo "Broken internal link in $f -> $link"
                 failed=1

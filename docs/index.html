@@ -398,17 +398,16 @@
             margin: 40px 0;
         }
     </style>
-    <link rel="icon" type="image/png" href="assets/logo.png">
+    
 </head>
 
 <body>
     <nav>
         <div class="container" style="display: flex; justify-content: space-between; align-items: center;">
-            <a href="/" class="logo" style="display: flex; align-items: center; gap: 12px;"><img src="assets/logo.png"
-                    alt="AgentSecurity Logo" style="height: 48px; width: auto; margin-right: 4px;" />AgentSecurity</a>
+            <a href="/" class="logo" style="display: flex; align-items: center; gap: 12px;">AgentSecurity</a>
             <button class="menu-toggle" id="mobile-menu">☰</button>
             <div class="links nav-links" id="nav-links">
-                <a href="what-is-agentsecurity.html">What is it?</a>
+                <a href="about.html">What is it?</a>
                 <a href="specification.html">Specification</a>
                 <a href="adopt.html">Adopt</a>
                 <a href="integration.html">Integration</a>
@@ -450,7 +449,7 @@
                         <button class="copy-btn"
                             style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
                         <pre><code class="language-bash"># Install from source
-python3 -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=tools/agentsec"
+python3 -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=packages/agentsec"
 
 # Initialize security policy
 agentsec init
@@ -465,7 +464,7 @@ agentsec scan .</code></pre>
                         <button class="copy-btn"
                             style="position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,0.1); border: none; color: white; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 12px;">Copy</button>
                         <pre><code class="language-powershell"># Install (PowerShell)
-python -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=tools/agentsec"
+python -m pip install "git+https://github.com/agentsecurity-ai/agentsecurity.git@main#subdirectory=packages/agentsec"
 
 # Initialize
 agentsec init
@@ -555,7 +554,7 @@ RESULT: FAIL (high severity findings detected)</code></pre>
 
         <h2 class="section-title">Navigate</h2>
         <div class="cards">
-            <a href="what-is-agentsecurity.html" class="card">
+            <a href="about.html" class="card">
                 <h3>What is AgentSecurity?</h3>
                 <p>Why pre-build security matters for autonomous agents. The threat landscape and how AGENTSECURITY.md
                     addresses it.</p>

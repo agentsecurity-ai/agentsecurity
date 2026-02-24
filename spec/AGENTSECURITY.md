@@ -467,9 +467,9 @@ All suppressions are included in the report for audit trail.
 This is an open standard. Contributions welcome at [github.com/agentsecurity-ai/agentsecurity](https://github.com/agentsecurity-ai/agentsecurity).
 
 - **Spec changes:** Open an RFC issue before submitting PRs
-- **New rules:** Add to `tools/agentsec/src/agentsec/rules/` with tests
+- **New rules:** Add to `packages/agentsec/src/agentsec/rules/` with tests
 - **Framework plugins:** Add to `examples/` with a working AGENTSECURITY.md
-- **Compliance mappings:** Add to `tools/agentsec/src/agentsec/mappings/`
+- **Compliance mappings:** Add to `packages/agentsec/src/agentsec/mappings/`
 
 ## License
 
